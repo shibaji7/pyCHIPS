@@ -74,12 +74,17 @@ class SDOFiles(object):
         return
 
 def fetch_sdo(_dict_):
-    """
-    Parse SDO files from remote
-    """
+    """ Parse SDO files from remote """
     sdo = SDOFiles(_dict_)
     sdo.fetch().close()
     return
+
+def fetch_filenames(_dict_):
+    """ Fetch file names and dirctory """
+    sdo = SDOFiles(_dict_)
+    _files_, _dirs_ = sdo.get_files()
+    sdo.close()
+    return _files_, _dirs_
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
