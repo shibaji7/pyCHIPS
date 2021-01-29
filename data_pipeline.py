@@ -49,7 +49,11 @@ class SDOFiles(object):
         return
     
     def get_files(self):
-        return self.filenames, self.folder
+        tag = "{:d}_{:04d}.jpg".format(self.resolution, self.wavelength)
+        filenames = []
+        for href, fname in zip(self.hrefs, self.filenames):
+            if tag in href: filenames.append(fname)
+        return filenames, self.folder
     
     def fetch(self):
         tag = "{:d}_{:04d}.jpg".format(self.resolution, self.wavelength)

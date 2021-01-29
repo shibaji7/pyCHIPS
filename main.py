@@ -9,14 +9,20 @@ __maintainer__ = "Chakraborty, S."
 __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
+import sys
+sys.path.append("core/")
 import argparse
+import datetime as dt
 from dateutil import parser as prs
 
 from data_pipeline import fetch_filenames
+from cv2_edge_detectors import EdgeDetection
 
 def run_cv2_module_sdo(_dict_):
     """ Run all cv2 related algorithms """
-    _files_, _dirs_ = fetch_filenames(_dict_)    
+    _files_, _dir_ = fetch_filenames(_dict_)
+    ed = EdgeDetection(_files_, _dir_, _dict_).find()
+    ed.close()
     return
 
 if __name__ == "__main__":
@@ -27,6 +33,7 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--loc", default="sdo", help="Database [sdo]", type=str)
     parser.add_argument("-a", "--algo", default="cv2.", help="Database [cv2.]", type=str)
     parser.add_argument("-v", "--verbose", action="store_false", help="Increase output verbosity [True]")
+    parser.add_argument("-dr", "--draw", action="store_true", help="Increase output verbosity [False]")
     args = parser.parse_args()
     _dict_ = {}
     if args.verbose:
