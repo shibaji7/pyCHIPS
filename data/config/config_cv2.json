@@ -1,6 +1,6 @@
 {
     "alpha": 10,
     "gauss_kernel": 9,
-    "prims": [200., 1000.],
-    "iter": 1,
+    "prims": [200, 1000],
+    "iter": 1
 }

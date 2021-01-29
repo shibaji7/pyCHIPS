@@ -13,6 +13,7 @@ import os
 import numpy as np
 import pandas as pd
 import cv2
+import json
 from to_remote import get_session
 
 class EdgeDetection(object):
@@ -30,10 +31,10 @@ class EdgeDetection(object):
     
     def setup(self):
         """ Load parameters """
-        self.alpha = 10
-        self.gauss_kernel = 13
-        self.prims = [200., 1000.]
-        self.iter = 2
+        with open("data/config/config_cv2.json", "r") as fp:
+            dic = json.load(fp)
+            for p in dic.keys():
+                setattr(self, p, dic[p])
         return
     
     def find(self):
