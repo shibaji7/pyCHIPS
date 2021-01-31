@@ -15,23 +15,19 @@ import argparse
 import datetime as dt
 from dateutil import parser as prs
 
-from data_pipeline import fetch_filenames
-from cv2_edge_detectors import EdgeDetection
+from cv2_edge_detectors import CHBDetection
 
 def run_cv2_module_sdo(_dict_):
     """ Run all cv2 related algorithms """
-    _files_, _dir_ = fetch_filenames(_dict_)
-    ed = EdgeDetection(_files_, _dir_, _dict_).find()
-    ed.close()
+    chb = CHBDetection(_dict_).find()
+    chb.close()
     return
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-dn", "--date", default=dt.datetime(2015,3,11), help="Date [2015-3-11]", type=prs.parse)
     parser.add_argument("-r", "--resolution", default=512, help="Resolution of the files [512]", type=int)
-    parser.add_argument("-w", "--wavelength", default=193, help="Wavelength of the files [193]", type=int)
-    parser.add_argument("-l", "--loc", default="sdo", help="Database [sdo]", type=str)
-    parser.add_argument("-a", "--algo", default="cv2.", help="Database [cv2.]", type=str)
+    parser.add_argument("-w", "--lead_wavelength", default=193, help="Wavelength of the files [193]", type=int)
     parser.add_argument("-v", "--verbose", action="store_false", help="Increase output verbosity [True]")
     parser.add_argument("-dr", "--draw", action="store_true", help="Increase output verbosity [False]")
     args = parser.parse_args()
@@ -41,4 +37,4 @@ if __name__ == "__main__":
         for k in vars(args).keys():
             print("     " + k + "->" + str(vars(args)[k]))
             _dict_[k] = vars(args)[k]
-    if _dict_["loc"] == "sdo" and "cv2" in _dict_["algo"]: run_cv2_module_sdo(_dict_)
+    run_cv2_module_sdo(_dict_)

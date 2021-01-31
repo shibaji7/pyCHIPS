@@ -78,6 +78,7 @@ class Conn2Remote(object):
     def create_remote_dir(self, ldir):
         rdir = LFS + ldir
         self.ssh.exec_command("mkdir -p " + rdir)
+        self.ssh.exec_command("ls -lth" + rdir)
         return
     
 def encrypt(host, user, filename="data/config/passcode.json"):

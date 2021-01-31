@@ -1,6 +1,206 @@
 {
-    "alpha": 10,
-    "gauss_kernel": 9,
-    "prims": [200, 1000],
-    "iter": 1
+    "wavelengths": [94, 131, 171, 193, 211, 304, 335],
+    "94":
+    {
+        "alpha": 10,
+        "gauss_kernel": 9,
+        "prims": [200, 1000],
+        "iter": 2,
+        "hc_param1": 100, 
+        "hc_param2": 30,
+        "ed_th_low": 0,
+        "ed_th_high": 255,
+        "draw_param":
+        {
+            "hc_center":
+            {
+                "color": [0, 255, 0],
+                "thick": 2
+            },
+            "hc_circle":
+            {
+                "color": [255, 0, 255],
+                "thick": 1
+            },
+            "contur":
+            {
+                "color": [0, 255, 0],
+                "thick": 1
+            }
+        }
+    },
+    "193": 
+    {
+        "alpha": 10,
+        "gauss_kernel": 9,
+        "prims": [200, 1000],
+        "iter": 1,
+        "hc_param1": 100, 
+        "hc_param2": 30,
+        "ed_th_low": 0,
+        "ed_th_high": 255,
+        "draw_param":
+        {
+            "hc_center":
+            {
+                "color": [0, 255, 0],
+                "thick": 2
+            },
+            "hc_circle":
+            {
+                "color": [255, 0, 255],
+                "thick": 1
+            },
+            "contur":
+            {
+                "color": [0, 255, 0],
+                "thick": 1
+            }
+        }
+    },
+    "211":
+    {
+        "alpha": 10,
+        "gauss_kernel": 9,
+        "prims": [200, 1000],
+        "iter": 1,
+        "hc_param1": 100, 
+        "hc_param2": 30,
+        "ed_th_low": 0,
+        "ed_th_high": 255,
+        "draw_param":
+        {
+            "hc_center":
+            {
+                "color": [0, 255, 0],
+                "thick": 2
+            },
+            "hc_circle":
+            {
+                "color": [255, 0, 255],
+                "thick": 1
+            },
+            "contur":
+            {
+                "color": [0, 255, 0],
+                "thick": 1
+            }
+        }
+    },
+    "171":
+    {
+        "alpha": 10,
+        "gauss_kernel": 9,
+        "prims": [200, 1000],
+        "iter": 2,
+        "hc_param1": 100, 
+        "hc_param2": 30,
+        "ed_th_low": 0,
+        "ed_th_high": 255,
+        "draw_param":
+        {
+            "hc_center":
+            {
+                "color": [0, 255, 0],
+                "thick": 2
+            },
+            "hc_circle":
+            {
+                "color": [255, 0, 255],
+                "thick": 1
+            },
+            "contur":
+            {
+                "color": [0, 255, 0],
+                "thick": 1
+            }
+        }
+    },
+    "131":
+    {
+        "alpha": 10,
+        "gauss_kernel": 9,
+        "prims": [200, 1000],
+        "iter": 0,
+        "hc_param1": 100, 
+        "hc_param2": 30,
+        "ed_th_low": 0,
+        "ed_th_high": 255,
+        "draw_param":
+        {
+            "hc_center":
+            {
+                "color": [0, 255, 0],
+                "thick": 2
+            },
+            "hc_circle":
+            {
+                "color": [255, 0, 255],
+                "thick": 1
+            },
+            "contur":
+            {
+                "color": [0, 255, 0],
+                "thick": 1
+            }
+        }
+    },
+    "304":
+    {
+        "alpha": 10,
+        "gauss_kernel": 9,
+        "prims": [10, 1000],
+        "iter": 5,
+        "hc_param1": 100, 
+        "hc_param2": 30,
+        "ed_th_low": 0,
+        "ed_th_high": 255,
+        "draw_param":
+        {
+            "hc_center":
+            {
+                "color": [0, 255, 0],
+                "thick": 2
+            },
+            "hc_circle":
+            {
+                "color": [255, 0, 255],
+                "thick": 1
+            },
+            "contur":
+            {
+                "color": [0, 255, 0],
+                "thick": 1
+            }
+        }
+    },
+    "335":
+    {
+        "alpha": 10,
+        "gauss_kernel": 9,
+        "prims": [10, 1000],
+        "iter": 5,
+        "hc_param1": 100, 
+        "hc_param2": 30,
+        "ed_th_low": 0,
+        "ed_th_high": 255,
+        "draw_param":
+        {
+            "hc_center":
+            {
+                "color": [0, 255, 0],
+                "thick": 2
+            },
+            "hc_circle":
+            {
+                "color": [255, 0, 255],
+                "thick": 1
+            },
+            "contur":
+            {
+                "color": [0, 255, 0],
+                "thick": 1
+            }
+        }
+    }
 }

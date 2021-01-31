@@ -15,8 +15,30 @@ import argparse
 from dateutil import parser as prs
 from lxml import html
 import requests
+import json
 
 from to_remote import get_session
+
+class SDOData(object):
+    """ Download datasets from SDO """
+    
+    def __init__(self, _dict_):
+        self._dict_ = _dict_
+        with open("data/config/data_config.json", "r") as f:
+            dic = json.load(f)
+            for p in dic.keys():
+                setattr(self, p, dic[p])
+        return
+    
+    def fetch(self):
+        """ Fetch data for all resolutions, magnetograms and wavelengths """
+        for resolution in self.resolutions:
+            for wavelength in self.wavelengths:
+                self._dict_["resolution"] = resolution
+                self._dict_["wavelength"] = wavelength
+                sdo = SDOFiles(self._dict_)
+                sdo.fetch().close()
+        return
 
 class SDOFiles(object):
     """ Class that holds SDO file objects """
@@ -57,11 +79,8 @@ class SDOFiles(object):
     
     def fetch(self):
         tag = "{:d}_{:04d}.jpg".format(self.resolution, self.wavelength)
-        create_dir = True
         for href, fname in zip(self.hrefs, self.filenames):
-            if tag in href:
-                self._download_sdo_data_(href, fname, create_dir)
-                create_dir = False
+            if tag in href: self._download_sdo_data_(href, fname)
         return self
     
     def close(self):
@@ -69,11 +88,11 @@ class SDOFiles(object):
         if os.path.exists(self.folder): os.system("rm -rf data/SDO-Database/*")
         return
     
-    def _download_sdo_data_(self, h, fname, create_dir):
+    def _download_sdo_data_(self, h, fname):
         if self.verbose: print(" Downloading from:", h, "-to-", self.folder.replace("data/SDO-Database/",""))
         r = requests.get(h)
         with open(self.folder + fname,"wb") as f: f.write(r.content)
-        if create_dir: self.conn.create_remote_dir(self.folder)
+        if not self.conn.chek_remote_file_exists(self.folder): self.conn.create_remote_dir(self.folder)
         self.conn.to_remote_FS(self.folder + fname, is_local_remove=True)
         return
 
@@ -83,19 +102,27 @@ def fetch_sdo(_dict_):
     sdo.fetch().close()
     return
 
-def fetch_filenames(_dict_):
+def fetch_sdo_data(_dict_):
+    """ Parse SDO files from remote """
+    sdo = SDOData(_dict_)
+    sdo.fetch()
+    return
+
+def fetch_filenames(date, resolution, wavelength):
     """ Fetch file names and dirctory """
-    sdo = SDOFiles(_dict_)
-    _files_, _dirs_ = sdo.get_files()
-    sdo.close()
-    return _files_, _dirs_
+    folder = "data/SDO-Database/{:4d}.{:02d}.{:02d}/{:d}/{:04d}/".format(date.year, date.month, date.day,
+                                                                              resolution, wavelength)
+    conn = get_session()
+    _, stdout, _ = conn.ssh.exec_command("ls LFS/LFS_iSWAT/" + folder)
+    files = stdout.read().decode("utf-8").split("\n")[:-1]
+    return files, folder
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-dn", "--date", default=dt.datetime(2015,3,11), help="Date [2015-3-11]", type=prs.parse)
     parser.add_argument("-r", "--resolution", default=512, help="Resolution of the files [512]", type=int)
     parser.add_argument("-w", "--wavelength", default=193, help="Wavelength of the files [193]", type=int)
-    parser.add_argument("-l", "--loc", default="sdo", help="Database [sdo]", type=str)
+    parser.add_argument("-l", "--loc", default="sdo", help="Database [sdo/sdo.a]", type=str)
     parser.add_argument("-v", "--verbose", action="store_false", help="Increase output verbosity [True]")
     args = parser.parse_args()
     _dict_ = {}
@@ -105,3 +132,4 @@ if __name__ == "__main__":
             print("     " + k + "->" + str(vars(args)[k]))
             _dict_[k] = vars(args)[k]
     if _dict_["loc"] == "sdo": fetch_sdo(_dict_)
+    if _dict_["loc"] == "sdo.a": fetch_sdo_data(_dict_)
