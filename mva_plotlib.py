@@ -43,7 +43,7 @@ def introduction_image(dn):
     wvbins = [131, 171, 193, 211, 335, 94]
     titles = ["a. AIA 131 (0.4 MK)", "b. AIA 171 (0.7 MK)", "c. AIA 193 (1.2 MK)", "d. AIA 211 (2.0 MK)", 
              "e. AIA 335 (2.5 MK)", "f. AIA 94 (6.3 MK)"]
-    fig, axes = plt.subplots(dpi=180, figsize=(8, 5), nrows=2, ncols=3)
+    fig, axes = plt.subplots(dpi=180, figsize=(5, 8), nrows=3, ncols=2)
     for j, wv in enumerate(wvbins):
         files, folder = fetch_filenames(dn, 1024, wv)
         os.system("mkdir -p " + folder)
@@ -58,7 +58,7 @@ def introduction_image(dn):
         if wv in [193,211]: image = cv2.rectangle(image, (360,440), (712,712), (255,255,0), 2)
         rows = image.shape[0]
         image[rows-int(rows/24):rows-1,0:int(rows/2),:] = 0
-        ax = axes[int(j/3), np.mod(j,3)]
+        ax = axes[np.mod(j,3), int(j/3)]
         set_axes(ax, image, titles[j])
         os.remove(f)
     fig.subplots_adjust(hspace=0.5, wspace=0.5)
