@@ -75,6 +75,12 @@ class Conn2Remote(object):
         self.scp.get(remote_file, local_file)
         return
     
+    def from_remote_to_local(self, remote_file, local_file):
+        remote_file = LFS + remote_file
+        print(" From file:", remote_file)
+        self.scp.get(remote_file, local_file)
+        return
+    
     def create_remote_dir(self, ldir):
         rdir = LFS + ldir
         self.ssh.exec_command("mkdir -p " + rdir)

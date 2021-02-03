@@ -32,12 +32,10 @@ class SDOData(object):
     
     def fetch(self):
         """ Fetch data for all resolutions, magnetograms and wavelengths """
-        for resolution in self.resolutions:
-            for wavelength in self.wavelengths:
-                self._dict_["resolution"] = resolution
-                self._dict_["wavelength"] = wavelength
-                sdo = SDOFiles(self._dict_)
-                sdo.fetch().close()
+        for wavelength in self.wavelengths:
+            self._dict_["wavelength"] = wavelength
+            sdo = SDOFiles(self._dict_)
+            sdo.fetch().close()
         return
 
 class SDOFiles(object):
@@ -116,6 +114,17 @@ def fetch_filenames(date, resolution, wavelength):
     _, stdout, _ = conn.ssh.exec_command("ls LFS/LFS_iSWAT/" + folder)
     files = stdout.read().decode("utf-8").split("\n")[:-1]
     return files, folder
+
+def fetch_fits_filename(date, wavelength):
+    """ Fetch file name and dirctory """
+    folder = "data/FITS-Database/{:4d}.{:02d}.{:02d}/{:04d}/".format(date.year, date.month, date.day, wavelength)
+    remote = "data/SDO-AIA-Examples/{:03d}/aia.lev1.{:03d}A_{:4d}-{:02d}-{:02d}*.image_lev1.fits".format(wavelength,
+                                               wavelength, date.year, date.month, date.day)
+    conn = get_session()
+    _, stdout, _ = conn.ssh.exec_command("ls LFS/LFS_iSWAT/" + remote)
+    _files_ = stdout.read().decode("utf-8").split("\n")[:-1]
+    files = [f.split("/")[-1] for f in _files_]
+    return files, folder, "/".join(remote.split("/")[:-1])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
