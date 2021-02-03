@@ -125,10 +125,10 @@ def final_image_parameters(dn, ax=None, th=32):
     return
 
 def example_multiple_events(dns, thds):
-    fig, axes = plt.subplots(dpi=180, figsize=(15, 5), nrows=1, ncols=3)
+    fig, axes = plt.subplots(dpi=180, figsize=(5, 15), nrows=3, ncols=1)
     for i in range(3):
         final_image_parameters(dns[i], axes[i], thds[i])        
-    fig.subplots_adjust(hspace=0.5, wspace=0.5)
+    fig.subplots_adjust(hspace=0.2, wspace=0.5)
     fig.savefig("data/mva.Figure05.png", bbox_inches="tight")
     os.system("rm -rf data/SDO-Database/*")
     return
