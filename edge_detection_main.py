@@ -17,7 +17,6 @@ from dateutil import parser as prs
 
 from data_pipeline import fetch_filenames, fetch_fits_filename
 from cv2_edge_detectors import EdgeDetection
-from cv2_fits_edge_detectors import FitsEdgeDetection
 
 def run_cv2_module_sdo(_dict_):
     """ Run all cv2 related algorithms """
@@ -25,10 +24,6 @@ def run_cv2_module_sdo(_dict_):
         _files_, _dir_ = fetch_filenames(_dict_["date"], _dict_["resolution"], _dict_["wavelength"])
         ed = EdgeDetection(_files_, _dir_, _dict_).find()
         ed.close()
-    if _dict_["loc"] == "fits":
-        files, folder, remote = fetch_fits_filename(_dict_["date"], _dict_["wavelength"])
-        fed = FitsEdgeDetection(files, folder, remote, _dict_).find()
-        fed.close()
     return
 
 if __name__ == "__main__":
