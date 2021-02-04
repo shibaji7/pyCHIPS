@@ -2,6 +2,9 @@
     "wavelengths": [94, 131, 171, 193, 211, 304, 335],
     "94":
     {
+        "advt": false,
+        "intensity_threshold": 32,
+        "intensity_prob_threshold": 0.5,
         "alpha": 10,
         "gauss_kernel": 9,
         "prims": [200, 1000],
@@ -31,6 +34,7 @@
     },
     "193": 
     {
+        "advt": false,
         "intensity_threshold": 32,
         "intensity_prob_threshold": 0.5,
         "alpha": 10,
@@ -62,9 +66,12 @@
     },
     "211":
     {
+        "advt": false,
+        "intensity_threshold": 32,
+        "intensity_prob_threshold": 0.5,
         "alpha": 10,
-        "gauss_kernel": 9,
-        "prims": [200, 1000],
+        "gauss_kernel": 7,
+        "prims": [10, 1000],
         "iter": 1,
         "hc_param1": 100, 
         "hc_param2": 30,
@@ -80,17 +87,20 @@
             "hc_circle":
             {
                 "color": [255, 0, 255],
-                "thick": 1
+                "thick": 2
             },
             "contur":
             {
-                "color": [0, 255, 0],
-                "thick": 1
+                "color": [127, 255, 127],
+                "thick": 2
             }
         }
     },
     "171":
     {
+        "advt": false,
+        "intensity_threshold": 32,
+        "intensity_prob_threshold": 0.5,
         "alpha": 10,
         "gauss_kernel": 9,
         "prims": [200, 1000],
@@ -120,6 +130,9 @@
     },
     "131":
     {
+        "advt": false,
+        "intensity_threshold": 32,
+        "intensity_prob_threshold": 0.5,
         "alpha": 10,
         "gauss_kernel": 9,
         "prims": [200, 1000],
@@ -149,6 +162,9 @@
     },
     "304":
     {
+        "advt": false,
+        "intensity_threshold": 32,
+        "intensity_prob_threshold": 0.5,
         "alpha": 10,
         "gauss_kernel": 9,
         "prims": [10, 1000],
@@ -178,13 +194,16 @@
     },
     "335":
     {
+        "advt": false,
+        "intensity_threshold": 32,
+        "intensity_prob_threshold": 0.99,
         "alpha": 10,
         "gauss_kernel": 9,
         "prims": [10, 1000],
         "iter": 5,
         "hc_param1": 100, 
         "hc_param2": 30,
-        "ed_th_low": 0,
+        "ed_th_low": 32,
         "ed_th_high": 255,
         "draw_param":
         {

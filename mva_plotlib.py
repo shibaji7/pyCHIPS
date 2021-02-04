@@ -67,15 +67,15 @@ def introduction_image(dn):
     conn.close()
     return
 
-def analysis_image(dn):
-    files, folder = fetch_filenames(dn, 1024, 193)
+def analysis_image(dn, wv=193):
+    files, folder = fetch_filenames(dn, 1024, wv)
     dates = [dt.datetime.strptime(f.split("_")[0]+f.split("_")[1], "%Y%m%d%H%M%S") for f in files]
     x = pd.DataFrame(np.array([dates, files]).T, columns=["date", "fname"])
     x["delt"] = np.abs([(u-dn).total_seconds() for u in x.date])
     i = x.delt.idxmin() 
     x = x.iloc[[i]]
     files = [x.fname.tolist()[0]]
-    _dict_ = {"date":dn, "resolution": 1024, "wavelength":193, "loc": "sdo", "verbose": True, "draw": True}
+    _dict_ = {"date":dn, "resolution": 1024, "wavelength":wv, "loc": "sdo", "verbose": True, "draw": True}
     ed = EdgeDetection(files, folder, _dict_).find()
     ed.close()
     titles = ["a. Original (AIA 193)", "b. Gray-Scale:HC", "c. Filtered ($K_{size}=%d$)"%ed.gauss_kernel,
@@ -95,22 +95,22 @@ def analysis_image(dn):
     os.system("rm -rf data/SDO-Database/*")
     return
 
-def final_image_parameters(dn, ax=None, th=32):
-    files, folder = fetch_filenames(dn, 1024, 193)
+def final_image_parameters(dn, ax=None, th=32, wv=193):
+    files, folder = fetch_filenames(dn, 1024, wv)
     dates = [dt.datetime.strptime(f.split("_")[0]+f.split("_")[1], "%Y%m%d%H%M%S") for f in files]
     x = pd.DataFrame(np.array([dates, files]).T, columns=["date", "fname"])
     x["delt"] = np.abs([(u-dn).total_seconds() for u in x.date])
     i = x.delt.idxmin() 
     x = x.iloc[[i]]
     files = [x.fname.tolist()[0]]
-    _dict_ = {"date":dn, "resolution": 1024, "wavelength":193, "loc": "sdo", "verbose": True, "draw": True, "write_id": True,
+    _dict_ = {"date":dn, "resolution": 1024, "wavelength":wv, "loc": "sdo", "verbose": True, "draw": True, "write_id": True,
              "intensity_threshold": th}
     ed = EdgeDetection(files, folder, _dict_).find()
     ed.close()
     if ax == None:
         fig, ax = plt.subplots(dpi=120, figsize=(5, 5))
         set_axes(ax, ed.prob_masked_image, "")
-        ax.text(-1024, 1072, "Detected CHB (AIA 193)", ha="left", va="center", fontdict={"size":10, "color":"r"})
+        ax.text(-1024, 1072, "Detected CHB (AIA %d)"%wv, ha="left", va="center", fontdict={"size":10, "color":"r"})
         ax.text(1024, 1072, ed.to_info_str(1), ha="right", va="center", fontdict={"size":10, "color":"b"})
         ax.text(1.03, 0.5, dn.strftime("%Y-%m-%d %H:%M:%S UT"), ha="center", va="center", fontdict={"size":10}, 
                 rotation=90, transform=ax.transAxes)
@@ -118,16 +118,16 @@ def final_image_parameters(dn, ax=None, th=32):
         os.system("rm -rf data/SDO-Database/*")
     else:
         set_axes(ax, ed.prob_masked_image, "")
-        ax.text(-1024, 1072, "Detected CHB (AIA 193)", ha="left", va="center", fontdict={"size":8, "color":"r"})
+        ax.text(-1024, 1072, "Detected CHB (AIA %d)"%wv, ha="left", va="center", fontdict={"size":8, "color":"r"})
         ax.text(1024, 1072, ed.to_info_str(1), ha="right", va="center", fontdict={"size":8, "color":"b"})
         ax.text(1.03, 0.5, dn.strftime("%Y-%m-%d %H:%M:%S UT"), ha="center", va="center", fontdict={"size":10}, 
                 rotation=90, transform=ax.transAxes)
     return
 
-def example_multiple_events(dns, thds):
-    fig, axes = plt.subplots(dpi=180, figsize=(5, 15), nrows=3, ncols=1)
-    for i in range(3):
-        final_image_parameters(dns[i], axes[i], thds[i])        
+def example_multiple_events(dn, thds, wavebands):
+    fig, axes = plt.subplots(dpi=180, figsize=(5, 10), nrows=2, ncols=1)
+    for i in range(2):
+        final_image_parameters(dn, axes[i], thds[i], wavebands[i])        
     fig.subplots_adjust(hspace=0.2, wspace=0.5)
     fig.savefig("data/mva.Figure05.png", bbox_inches="tight")
     os.system("rm -rf data/SDO-Database/*")
@@ -138,6 +138,6 @@ if __name__ == "__main__":
     introduction_image(dn)
     analysis_image(dn)
     final_image_parameters(dn)
-    dns = [dt.datetime(2018,5,30,12), dt.datetime(2015,9,8), dt.datetime(2016,9,22,20)]
-    thds = [32, 48, 32]
-    example_multiple_events(dns, thds)
+    thds = [48, 48]
+    wavebands = [193, 211]
+    example_multiple_events(dt.datetime(2015,9,8,20), thds, wavebands)

@@ -131,7 +131,8 @@ class EdgeDetection(object):
         cv2.circle(self.mask, self.center, self.radius, tuple(self.draw_param["hc_circle"]["color"]), -1)
         self.mask[self.mask > 0] = 1
         self.blur_mask = self.mask*self.blur
-        _, thrs = cv2.threshold(self.blur_mask, self.ed_th_low, self.ed_th_high, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        if not self.advt: _, thrs = cv2.threshold(self.blur_mask, self.ed_th_low, self.ed_th_high, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        else: thrs = cv2.adaptiveThreshold(self.blur_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 7, 2)
         self.inv = 255 - thrs
         cv2.circle(self.inv, self.center, self.radius-int(self.delta/2), (0,0,0), 2)
         self.contours, self.hierarchy = cv2.findContours(self.inv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
