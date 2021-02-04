@@ -90,7 +90,9 @@ class SDOFiles(object):
         if self.verbose: print(" Downloading from:", h, "-to-", self.folder.replace("data/SDO-Database/",""))
         r = requests.get(h)
         with open(self.folder + fname,"wb") as f: f.write(r.content)
-        if not self.conn.chek_remote_file_exists(self.folder): self.conn.create_remote_dir(self.folder)
+        if not self.conn.chek_remote_file_exists(self.folder): 
+            self.conn.ssh.exec_command("ls -lth LFS/LFS_iSWAT/" + self.folder)
+            self.conn.create_remote_dir(self.folder)
         self.conn.to_remote_FS(self.folder + fname, is_local_remove=True)
         return
 
@@ -129,6 +131,7 @@ def fetch_fits_filename(date, wavelength):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-dn", "--date", default=dt.datetime(2015,3,11), help="Date [2015-3-11]", type=prs.parse)
+    parser.add_argument("-dur", "--duration", default=1, help="Duration of download", type=int)
     parser.add_argument("-r", "--resolution", default=512, help="Resolution of the files [512]", type=int)
     parser.add_argument("-w", "--wavelength", default=193, help="Wavelength of the files [193]", type=int)
     parser.add_argument("-l", "--loc", default="sdo", help="Database [sdo/sdo.a]", type=str)
@@ -140,5 +143,9 @@ if __name__ == "__main__":
         for k in vars(args).keys():
             print("     " + k + "->" + str(vars(args)[k]))
             _dict_[k] = vars(args)[k]
-    if _dict_["loc"] == "sdo": fetch_sdo(_dict_)
-    if _dict_["loc"] == "sdo.a": fetch_sdo_data(_dict_)
+    for d in range(args.duration):
+        try:
+            _dict_["date"] = args.date + dt.timedelta(days=d)
+            if _dict_["loc"] == "sdo": fetch_sdo(_dict_)
+            if _dict_["loc"] == "sdo.a": fetch_sdo_data(_dict_)
+        except: continue
