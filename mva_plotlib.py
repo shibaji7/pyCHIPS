@@ -80,7 +80,7 @@ def analysis_image(dn, wv=193):
     ed.close()
     titles = ["a. Original (AIA 193)", "b. Gray-Scale:HC", "c. Filtered ($K_{size}=%d$)"%ed.gauss_kernel,
               "d. Masked:HC", "e. Threshold: OTSU", "f. Conturs", 
-              "g. Pr($I_i\geq %d$)$\geq %.2f$"%(ed.intensity_threshold, ed.intensity_prob_threshold), "h. Detected CHB"]
+              r"g. $\mathcal{F}\left(I^C> %d\right)\geq %.2f$"%(ed.intensity_threshold, ed.intensity_prob_threshold), "h. Detected CHB"]
     fig, axes = plt.subplots(dpi=180, figsize=(5, 10), nrows=4, ncols=2)
     set_axes(axes[0,0], cv2.rectangle(ed.org, (360,440), (712,712), (255,255,0), 2), titles[0])
     set_axes(axes[0,1], ed.gray_hc, titles[1], True)
@@ -124,20 +124,50 @@ def final_image_parameters(dn, ax=None, th=32, wv=193):
                 rotation=90, transform=ax.transAxes)
     return
 
+def final_image_parameters_masked(dn, ax=None, th=32, wv=193):
+    files, folder = fetch_filenames(dn, 1024, wv)
+    dates = [dt.datetime.strptime(f.split("_")[0]+f.split("_")[1], "%Y%m%d%H%M%S") for f in files]
+    x = pd.DataFrame(np.array([dates, files]).T, columns=["date", "fname"])
+    x["delt"] = np.abs([(u-dn).total_seconds() for u in x.date])
+    i = x.delt.idxmin() 
+    x = x.iloc[[i]]
+    files = [x.fname.tolist()[0]]
+    _dict_ = {"date":dn, "resolution": 1024, "wavelength":wv, "loc": "sdo", "verbose": True, "draw": True, "write_id": True,
+             "intensity_threshold": th}
+    ed = EdgeDetection(files, folder, _dict_).find()
+    ed.close()
+    set_axes(ax, ed.prob_masked_gray_image, "")
+    ax.text(-1024, 1096, "AIA %d"%wv, ha="left", va="center", fontdict={"size":8, "color":"r"})
+    ax.text(1024, 1096, r"$\mathcal{F}\left(I^C> %d\right)\geq 0.5$"%th, ha="right", va="center", fontdict={"size":8, "color":"k"})
+    ax.text(1.05, 0.5, dn.strftime("%Y-%m-%d %H:%M:%S UT"), ha="center", va="center", fontdict={"size":6}, 
+                rotation=90, transform=ax.transAxes)
+    return
+
+def example_multiple_thresholds(dn, thds):
+    fig, axes = plt.subplots(dpi=180, figsize=(3,8), nrows=3, ncols=1)
+    for i in range(3):
+        final_image_parameters_masked(dn, axes[i], thds[i], 193)
+    fig.subplots_adjust(hspace=0.4, wspace=0.2)
+    fig.savefig("data/mva.Figure05.png", bbox_inches="tight")
+    os.system("rm -rf data/SDO-Database/*")
+    return
+
 def example_multiple_events(dn, thds, wavebands):
     fig, axes = plt.subplots(dpi=180, figsize=(5, 10), nrows=2, ncols=1)
     for i in range(2):
         final_image_parameters(dn, axes[i], thds[i], wavebands[i])        
     fig.subplots_adjust(hspace=0.2, wspace=0.5)
-    fig.savefig("data/mva.Figure05.png", bbox_inches="tight")
+    fig.savefig("data/mva.Figure06.png", bbox_inches="tight")
     os.system("rm -rf data/SDO-Database/*")
     return
 
 if __name__ == "__main__":
     dn = dt.datetime(2018,5,30,12)
-    introduction_image(dn)
-    analysis_image(dn)
-    final_image_parameters(dn)
-    thds = [48, 48]
-    wavebands = [193, 211]
-    example_multiple_events(dt.datetime(2015,9,8,20), thds, wavebands)
+    #introduction_image(dn)
+    #analysis_image(dn)
+    #final_image_parameters(dn)
+    #thds = [48, 48]
+    #wavebands = [193, 211]
+    #example_multiple_events(dt.datetime(2015,9,8,20), thds, wavebands)
+    example_multiple_thresholds(dn, [20, 32, 48])
+    
