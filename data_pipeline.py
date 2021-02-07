@@ -132,7 +132,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-dn", "--date", default=dt.datetime(2015,3,11), help="Date [2015-3-11]", type=prs.parse)
     parser.add_argument("-dur", "--duration", default=1, help="Duration of download", type=int)
-    parser.add_argument("-r", "--resolution", default=512, help="Resolution of the files [512]", type=int)
+    parser.add_argument("-r", "--resolution", default=1024, help="Resolution of the files [512]", type=int)
     parser.add_argument("-w", "--wavelength", default=193, help="Wavelength of the files [193]", type=int)
     parser.add_argument("-l", "--loc", default="sdo", help="Database [sdo/sdo.a]", type=str)
     parser.add_argument("-v", "--verbose", action="store_false", help="Increase output verbosity [True]")

@@ -163,11 +163,11 @@ def example_multiple_events(dn, thds, wavebands):
 
 if __name__ == "__main__":
     dn = dt.datetime(2018,5,30,12)
-    #introduction_image(dn)
-    #analysis_image(dn)
-    #final_image_parameters(dn)
-    #thds = [48, 48]
-    #wavebands = [193, 211]
-    #example_multiple_events(dt.datetime(2015,9,8,20), thds, wavebands)
+    introduction_image(dn)
+    analysis_image(dn)
+    final_image_parameters(dn)
+    thds = [48, 48]
+    wavebands = [193, 211]
+    example_multiple_events(dt.datetime(2015,9,8,20), thds, wavebands)
     example_multiple_thresholds(dn, [20, 32, 48])
     
