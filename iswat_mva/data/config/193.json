@@ -1,11 +1,12 @@
 {
     "advt": false,
-    "intensity_threshold": 32,
+    "intensity_threshold": 128,
     "intensity_prob_threshold": 0.5,
     "alpha": 10,
     "gauss_kernel": 9,
     "prims": [10, 1000],
-    "hc_param1": 100,
+    "iter": 1,
+    "hc_param1": 100, 
     "hc_param2": 30,
     "ed_th_low": 0,
     "ed_th_high": 255,
@@ -24,8 +25,7 @@
         "contur":
         {
             "color": [0, 255, 0],
-            "thick": 2,
-            "nest_color": [128, 128, 255]
+            "thick": 2
         }
     }
 }

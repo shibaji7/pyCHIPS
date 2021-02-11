@@ -1,4 +1,4 @@
-"""PCHI.py: Module is used to implement different edge detection tecqniues using CV2"""
+"""chrips.py: Module is used to implement edge detection tecqniues using CV2"""
 
 __author__ = "Chakraborty, S."
 __copyright__ = "Copyright 2021, SuperDARN@VT"
@@ -25,7 +25,7 @@ rcParams["font.family"] = "sans-serif"
 from to_remote import get_session
 from data_pipeline import fetch_filenames
 
-class PCHI(object):
+class Chrips(object):
     """ Edge detection by Open-CV """
     
     def __init__(self, filename, folder, _dict_, cfg_file = "data/config/193.json"):
