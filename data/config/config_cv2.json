@@ -60,7 +60,8 @@
             "contur":
             {
                 "color": [0, 255, 0],
-                "thick": 2
+                "thick": 2,
+                "nest_color": [128, 128, 255]
             }
         }
     },
@@ -92,7 +93,8 @@
             "contur":
             {
                 "color": [127, 255, 127],
-                "thick": 2
+                "thick": 2,
+                "nest_color": [128, 128, 255]
             }
         }
     },

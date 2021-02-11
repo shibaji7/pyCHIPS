@@ -152,21 +152,24 @@ class EdgeDetection(object):
                 ix += 1
         cv2.imwrite(f.replace(".jpg", "_overlaied.jpg"), self.src)
         cv2.imwrite(f.replace(".jpg", "_contours.jpg"), self.image)
+        self.blur_mask = cv2.cvtColor(self.blur_mask,cv2.COLOR_GRAY2RGB)
+        cv2.circle(self.blur_mask, self.center, self.radius, (255,0,0),5)
         return
     
-    def draw_contour(self, contour, img):
+    def draw_contour(self, contour, img, col=None):
+        if col is None: col=tuple(self.draw_param["contur"]["color"])
         for _x in range(contour.shape[0]-1):
             cv2.line(img, (contour[_x,0,0], contour[_x,0,1]), (contour[_x+1,0,0], contour[_x+1,0,1]), 
-                     tuple(self.draw_param["contur"]["color"]), self.draw_param["contur"]["thick"])
+                     col, self.draw_param["contur"]["thick"])
         cv2.line(img, (contour[0,0,0], contour[0,0,1]), (contour[-1,0,0], contour[-1,0,1]), 
-                 tuple(self.draw_param["contur"]["color"]), self.draw_param["contur"]["thick"])
+                 col, self.draw_param["contur"]["thick"])
         return
     
     def draw_nested_contour(self, img, fc_np):
         # [Next, Previous, First_Child, Parent]
         rd = 50
         self.rec_depth += 1
-        self.draw_contour(self.contours[fc_np], img)
+        self.draw_contour(self.contours[fc_np], img, tuple(self.draw_param["contur"]["nest_color"]))
         if self.hierarchy[0, fc_np, 0] > 0 and self.rec_depth < rd: self.draw_nested_contour(img, self.hierarchy[0, fc_np, 0])
         if self.hierarchy[0, fc_np, 1] > 0 and self.rec_depth < rd: self.draw_nested_contour(img, self.hierarchy[0, fc_np, 1])
         return
@@ -191,9 +194,9 @@ class EdgeDetection(object):
     
     def write(self, img, txt, blc):
         font = cv2.FONT_HERSHEY_SIMPLEX
-        fontScale = 1.
-        fontColor = (0,127,255)
-        lineType  = 2
+        fontScale = 2.
+        fontColor = (0,200,255)
+        lineType  = 3
         cv2.putText(img, txt, blc, font, fontScale, fontColor, lineType)
         return
     

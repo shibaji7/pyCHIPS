@@ -38,12 +38,13 @@ from PCHI import PCHI
 #     import matplotlib.pyplot as plt
 #     plt.style.context("seaborn")
 #     from sunpy.cm import cm
+#     #dat = 1024*(dat - dat.min())/(dat.max()-dat.min())
 #     sdoaia = cm.cmlist.get("sdoaia"+str(wavelength))
 #     fig = plt.figure(dpi=256, figsize=(1024/256,1024/256))
 #     ax = plt.Axes(fig, [0., 0., 1., 1.])
 #     ax.set_axis_off()
 #     fig.add_axes(ax)
-#     ax.imshow(dat, aspect='auto', cmap=sdoaia)
+#     ax.imshow(dat, aspect="auto", cmap=sdoaia, origin="lower")
 #     return fig
 
 # def fetch_convert_all_files(wavelength=193):
@@ -64,7 +65,7 @@ from PCHI import PCHI
 #         cv2.imwrite(local+f.replace(".fits", ".jpg"), im)
 #         hdul.close()
 #         os.remove(local+f)
-#         #break
+#         break
 #     conn.close()
 #     return
 
