@@ -47,7 +47,7 @@ class EdgeDetection(object):
             for p in dic[str(self.wavelength)].keys():
                 if not hasattr(self, p): setattr(self, p, dic[str(self.wavelength)][p])
         self.prims = np.array(self.prims) * mult
-        self.delta = int(self.resolution/64)
+        self.delta = int(self.resolution/128)
         return
     
     def find(self):
@@ -56,18 +56,18 @@ class EdgeDetection(object):
         for fname in self._files_:
             f = self.folder+fname
             print(" Proc File:",f)
-            if self.conn.chek_remote_file_exists(f): 
-                self.conn.from_remote_FS(f)
-                self.detect_hough_circles(f)
-                self.detect_edges(f)
+            #if self.conn.chek_remote_file_exists(f): 
+            #    self.conn.from_remote_FS(f)
+            self.detect_hough_circles(f)
+            self.detect_edges(f)
             #break
         return self
     
     def close(self):
         self.conn.close()
-        if os.path.exists(self.folder): 
-            for fname in self._files_:
-                if os.path.exists(self.folder+fname): os.remove(self.folder+fname)
+        #if os.path.exists(self.folder): 
+        #    for fname in self._files_:
+        #        if os.path.exists(self.folder+fname): os.remove(self.folder+fname)
         return
     
     def detect_hough_circles(self, f):
@@ -93,7 +93,7 @@ class EdgeDetection(object):
                                self.draw_param["hc_circle"]["thick"])# circle outline
                     cv2.circle(self.image, self.center, self.radius, tuple(self.draw_param["hc_circle"]["color"]), 
                                self.draw_param["hc_circle"]["thick"])
-        if self.draw: cv2.imwrite(f.replace(".jpg", "_hc.jpg"), src)
+        #if self.draw: cv2.imwrite(f.replace(".jpg", "_hc.jpg"), src)
         return
     
     def get_center(self, contour):
@@ -123,46 +123,49 @@ class EdgeDetection(object):
         self.prob_masked_gray_image, self.prob_masked_image = np.zeros_like(self.src), np.copy(self.org)
         self.gray = cv2.cvtColor(self.src, cv2.COLOR_BGR2GRAY)
         self.gray_hc = np.copy(self.gray)
-        cv2.circle(self.gray_hc, self.center, 1, (255, 255, 255), 3)
-        cv2.circle(self.gray_hc, self.center, self.radius, (255, 255, 255), 3)
-        cv2.circle(self.prob_masked_gray_image, self.center, self.radius, (255, 255, 255), 3)
+        cv2.circle(self.gray_hc, self.center, 1, (255, 255, 255), self.draw_param["hc_circle"]["thick"])
+        cv2.circle(self.gray_hc, self.center, self.radius, (255, 255, 255), self.draw_param["hc_circle"]["thick"])
+        cv2.circle(self.prob_masked_gray_image, self.center, self.radius, (255, 255, 255), self.draw_param["hc_circle"]["thick"])
         self.blur = cv2.GaussianBlur(self.gray, (self.gauss_kernel, self.gauss_kernel), 0)
         self.mask = np.zeros_like(self.gray)
         cv2.circle(self.mask, self.center, self.radius, tuple(self.draw_param["hc_circle"]["color"]), -1)
         self.mask[self.mask > 0] = 1
         self.blur_mask = self.mask*self.blur
+        #cv2.circle(self.blur_mask, self.center, self.radius, (255, 255, 255), self.draw_param["hc_circle"]["thick"])
         if not self.advt: _, thrs = cv2.threshold(self.blur_mask, self.ed_th_low, self.ed_th_high, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-        else: thrs = cv2.adaptiveThreshold(self.blur_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 7, 2)
+        else: thrs = cv2.adaptiveThreshold(self.blur_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
         self.inv = 255 - thrs
-        cv2.circle(self.inv, self.center, self.radius-int(self.delta/2), (0,0,0), 2)
+        cv2.circle(self.inv, self.center, self.radius-int(self.delta/2), (0,0,0), self.draw_param["hc_circle"]["thick"])
         self.contours, self.hierarchy = cv2.findContours(self.inv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        perimeters = [cv2.arcLength(self.contours[i],True) for i in range(len(self.contours))]
-        x = pd.DataFrame(np.array([perimeters, range(len(perimeters))]).T, columns=["perims", "ids"])
-        x = x.sort_values("perims",ascending=False)
+        perimetes = [cv2.arcLength(self.contours[i],True) for i in range(len(self.contours))]
+        x = pd.DataFrame(np.array([perimetes, range(len(perimetes))]).T, columns=["perimetes", "ids"])
+        x = x.sort_values("perimetes",ascending=False)
         ix = 0
-        for idx, perimeter in zip(x.ids, x.perims):
+        for idx, perimeter in zip(x.ids, x.perimetes):
             contour = self.contours[int(idx)]
-            if perimeter > self.prims[0] and perimeter < self.prims[1] and self.distance(contour) < self.radius: 
-                print(" Arc Len:", perimeter)
+            if perimeter > (2*np.pi*self.radius)+100 or perimeter < (2*np.pi*self.radius)-100:
+                print(" Arc perim:", perimeter)
                 self.image_intensity(self.gray, idx)
                 self.draw_contour(contour, self.src)
                 self.rec_depth = 0
                 self.draw_nested_contour(self.src, self.hierarchy[0, int(idx), 2])
                 self.draw_contour(contour, self.image)
                 ix += 1
-        cv2.imwrite(f.replace(".jpg", "_overlaied.jpg"), self.src)
-        cv2.imwrite(f.replace(".jpg", "_contours.jpg"), self.image)
+        #cv2.imwrite(f.replace(".jpg", "_overlaied.jpg"), self.src)
+        #cv2.imwrite(f.replace(".jpg", "_contours.jpg"), self.image)
         self.blur_mask = cv2.cvtColor(self.blur_mask,cv2.COLOR_GRAY2RGB)
         cv2.circle(self.blur_mask, self.center, self.radius, (255,0,0),5)
         return
     
     def draw_contour(self, contour, img, col=None):
-        if col is None: col=tuple(self.draw_param["contur"]["color"])
-        for _x in range(contour.shape[0]-1):
-            cv2.line(img, (contour[_x,0,0], contour[_x,0,1]), (contour[_x+1,0,0], contour[_x+1,0,1]), 
+        perim = cv2.arcLength(contour, True)
+        if perim > (2*np.pi*self.radius)+500 or perim < (2*np.pi*self.radius)-100:
+            if col is None: col=tuple(self.draw_param["contur"]["color"])
+            for _x in range(contour.shape[0]-1):
+                cv2.line(img, (contour[_x,0,0], contour[_x,0,1]), (contour[_x+1,0,0], contour[_x+1,0,1]), 
+                         col, self.draw_param["contur"]["thick"])
+            cv2.line(img, (contour[0,0,0], contour[0,0,1]), (contour[-1,0,0], contour[-1,0,1]), 
                      col, self.draw_param["contur"]["thick"])
-        cv2.line(img, (contour[0,0,0], contour[0,0,1]), (contour[-1,0,0], contour[-1,0,1]), 
-                 col, self.draw_param["contur"]["thick"])
         return
     
     def draw_nested_contour(self, img, fc_np):
@@ -181,21 +184,24 @@ class EdgeDetection(object):
         intensity = self.intensity_threshold-gray[pts[0], pts[1]].ravel().astype(int)
         prob = 1-np.median(1./(1.+np.exp(intensity)))
         col = np.array([255,255,255])*prob
-        cv2.drawContours(self.prob_masked_gray_image, self.contours, int(ix), tuple(col), thickness=-1)
+        #cv2.drawContours(self.prob_masked_gray_image, self.contours, int(ix), tuple(col), thickness=-1)
         if prob >= self.intensity_prob_threshold:
+            cv2.drawContours(self.prob_masked_gray_image, self.contours, int(ix), tuple(col), thickness=-1)
             self.write_id_index += 1
             self.rec_depth = 0
             self.draw_contour(self.contours[int(ix)], self.prob_masked_image)
             self.draw_nested_contour(self.prob_masked_image, self.hierarchy[0, int(ix), 2])
             if hasattr(self, "write_id") and self.write_id: 
-                self.write(self.prob_masked_image, "CH:%d"%self.write_id_index, self.get_center(self.contours[int(ix)]))
+                if self.write_id_index==1:
+                    self.write(self.prob_masked_image, "CH:%d"%self.write_id_index, self.get_center(self.contours[int(ix)]))
                 self.extract_informations(self.contours[int(ix)])
         return prob
     
     def write(self, img, txt, blc):
+        blc = (blc[0]+64, blc[1])
         font = cv2.FONT_HERSHEY_SIMPLEX
         fontScale = 2.
-        fontColor = (0,200,255)
+        fontColor = (255,255,32)
         lineType  = 3
         cv2.putText(img, txt, blc, font, fontScale, fontColor, lineType)
         return
@@ -206,11 +212,17 @@ class EdgeDetection(object):
         cv2.circle(circle, self.center, self.radius-self.delta, (255,255,255), -1)
         _, thrs = cv2.threshold(circle, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         cntrs, _ = cv2.findContours(thrs, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        c_area = cv2.contourArea(cntrs[0])
+        #print(cntrs)
+        c_area = 2*np.pi*self.radius**2#cv2.contourArea(cntrs[0],False)
         c_perim = cv2.arcLength(cntrs[0],True)
         self.contour_infos[self.write_id_index]["area"] = np.round(cv2.contourArea(contour)/(c_area),2)
-        self.contour_infos[self.write_id_index]["d"] = np.round(self.distance(contour)/self.resolution,2)
+        self.contour_infos[self.write_id_index]["d"] = np.round(self.distance(contour)/self.radius,2)
         self.contour_infos[self.write_id_index]["perim"] = np.round(cv2.arcLength(contour,True)/c_perim,2)
+        
+        if self.contour_infos[self.write_id_index]["area"] > 1: 
+            print(self.contour_infos[self.write_id_index]["area"], np.round(self.resolution**2/(c_area),2))
+            self.contour_infos[self.write_id_index]["area"] = np.round(cv2.contourArea(contour)/(c_area),2) -\
+            np.round(self.resolution**2/(c_area),2)
         return
     
     def to_info_str(self, ix):

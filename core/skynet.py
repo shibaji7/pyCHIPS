@@ -40,9 +40,59 @@ _params_ = {
     "stepsize_con": "Step size for continuity loss",
 }
 
-sys.path.append("./")
-from to_remote import get_session
-from data_pipeline import fetch_filenames
+import astropy.units as u
+from sunpy.net import Fido, attrs
+import sunpy.map
+from aiapy.calibrate import register, update_pointing, normalize_exposure
+
+import matplotlib.pyplot as plt
+import cv2
+import os
+
+class RegisterAIA(object):
+    
+    def __init__(self, date, wavelength=193, resolution=1024, vmin=10):
+        self.wavelength = wavelength
+        self.date = date
+        self.resolution = resolution
+        self.vmin = vmin
+        self.folder = "data/SDO-Database/{:4d}.{:02d}.{:02d}/{:d}/{:04d}/".format(self.date.year, self.date.month, self.date.day,
+                                                                             self.resolution, self.wavelength)
+        self.fname = self.folder + "{:4d}_{:02d}_{:02d}_{:d}_{:02d}{:02d}{:02d}_{:04d}.png".format(self.date.year, self.date.month,
+                                                                                              self.date.day, self.date.hour,
+                                                                                              self.date.minute, self.date.second, 
+                                                                                              self.resolution, self.wavelength)
+        if not os.path.exists(self.folder): os.system("mkdir -p " + self.folder)
+        if not os.path.exists(self.fname):
+            self.normalized()
+            self.to_png()
+        return
+    
+    def normalized(self):
+        q = Fido.search(
+            attrs.Time(self.date.strftime("%Y-%m-%dT%H:%M:%S"), (self.date + dt.timedelta(seconds=11)).strftime("%Y-%m-%dT%H:%M:%S")),
+            attrs.Instrument("AIA"),
+            attrs.Wavelength(wavemin=self.wavelength*u.angstrom, wavemax=self.wavelength*u.angstrom),
+        )
+        self.m = sunpy.map.Map(Fido.fetch(q))
+        m_updated_pointing = update_pointing(self.m)
+        m_registered = register(m_updated_pointing)
+        self.m_normalized = normalize_exposure(m_registered)
+        return
+    
+    def to_png(self):
+        norm, m = self.m_normalized, self.m
+        fig, ax = plt.subplots(nrows=1,ncols=1,dpi=100,figsize=(2048/100, 2048/100))
+        norm.plot(annotate=False, axes=ax, vmin=self.vmin)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        fig.savefig("tmp.png",bbox_inches="tight")
+        im = cv2.imread("tmp.png")
+        im = im[10:-10,10:-10]
+        im = cv2.resize(im, (self.resolution, self.resolution))
+        os.remove("tmp.png")
+        cv2.imwrite(self.fname, im)
+        return
 
 # CNN model
 class SkyNet(nn.Module):
@@ -78,8 +128,9 @@ class Loader(object):
     def __init__(self, date, params, save=True):
         self.date = date        
         self.params = params
+        self.resolution = params.resolution
+        self.wavelength = params.wavelength
         self.save = save
-        self.conn = get_session()
         self.get_file_folder()
         self.use_cuda = torch.cuda.is_available()
         self.im = cv2.imread(self.folder + self.fname)
@@ -89,15 +140,12 @@ class Loader(object):
         return
     
     def get_file_folder(self):
-        files, folder = fetch_filenames(self.date, self.params.resolution, self.params.wavelength)
-        dates = [dt.datetime.strptime(f.split("_")[0]+f.split("_")[1], "%Y%m%d%H%M%S") for f in files]
-        x = pd.DataFrame(np.array([dates, files]).T, columns=["date", "fname"])
-        x["delt"] = np.abs([(u-self.date).total_seconds() for u in x.date])
-        i = x.delt.idxmin() 
-        x = x.iloc[[i]]
-        self.fname, self.folder = x.fname.tolist()[0], folder
-        if not os.path.exists(self.folder): os.system("mkdir -p " + self.folder)
-        if self.conn.chek_remote_file_exists(self.folder + self.fname): self.conn.from_remote_FS(self.folder + self.fname)
+        self.folder = "data/SDO-Database/{:4d}.{:02d}.{:02d}/{:d}/{:04d}/".format(self.date.year, self.date.month, self.date.day,
+                                                                             self.resolution, self.wavelength)
+        self.fname = "{:4d}_{:02d}_{:02d}_{:d}_{:02d}{:02d}{:02d}_{:04d}.png".format(self.date.year, self.date.month,
+                                                                                     self.date.day, self.date.hour,
+                                                                                     self.date.minute, self.date.second, 
+                                                                                     self.resolution, self.wavelength)
         return
     
     def load_model(self):
@@ -147,24 +195,23 @@ class Loader(object):
         output = self.model(self.data)[0]
         output = output.permute(1, 2, 0).contiguous().view(-1, self.params.nChannel)
         ignore, target = torch.max(output, 1)
-        im_target = target.data.cpu().numpy()
-        im_target_rgb = np.array([self.label_colours[c % 100] for c in im_target])
+        self.im_target = target.data.cpu().numpy()
+        im_target_rgb = np.array([self.label_colours[c % 100] for c in self.im_target])
         im_target_rgb = im_target_rgb.reshape(self.im.shape).astype(np.uint8)
-        cv2.imwrite(self.folder + self.fname.replace(".jpg", "_seg.jpg"), im_target_rgb)
+        cv2.imwrite(self.folder + self.fname.replace(".png", "_seg.png"), im_target_rgb)
         return
     
     def estimate_CHB(self):
         return self
-
-    def close(self):
-        self.conn.close()
+    
+    def convert_to_binary(self):
         return
 
 def run_skynet(args, save=True):
+    RegisterAIA(args.date, args.wavelength, args.resolution, vmin=10)
     load = Loader(args.date, args, save)
     load.load_model().run_forwarding().estimate_CHB()
     if save: load.save_outputs()
-    load.close()
     return
 
 if __name__ == "__main__":

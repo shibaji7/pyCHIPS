@@ -68,11 +68,11 @@
     "211":
     {
         "advt": false,
-        "intensity_threshold": 32,
+        "intensity_threshold": 230,
         "intensity_prob_threshold": 0.5,
-        "alpha": 10,
-        "gauss_kernel": 7,
-        "prims": [10, 1000],
+        "alpha": 32,
+        "gauss_kernel": 21,
+        "prims": [10, 2000],
         "iter": 1,
         "hc_param1": 100, 
         "hc_param2": 30,

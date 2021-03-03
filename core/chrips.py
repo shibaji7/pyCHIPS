@@ -25,7 +25,8 @@ rcParams["font.family"] = "sans-serif"
 class Chrips(object):
     """ Edge detection by Open-CV """
     
-    def __init__(self, filename, folder, _dict_, cfg_file = "data/config/193.json"):
+    def __init__(self, filename, folder, _dict_, cfg_file = "data/config/{:3d}.json"):
+        cfg_file = cfg_file.format(_dict_["wavelength"])
         with open(cfg_file, "r") as fp:
             dic = json.load(fp)
             for p in dic.keys():
@@ -64,7 +65,7 @@ class Chrips(object):
         """ Load parameters """
         mult = int(self.resolution/512) + 0.5
         self.prims = np.array(self.prims) * mult
-        self.delta = int(self.resolution/64)
+        self.delta = int(self.resolution/128)
         return
     
     def run(self):
@@ -121,8 +122,9 @@ class Chrips(object):
         blur_mask = mask*blur
         if not self.advt: _, thrs = cv2.threshold(blur_mask, self.ed_th_low, self.ed_th_high, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         else: thrs = cv2.adaptiveThreshold(blur_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 7, 2)
+        _, inv = cv2.threshold(blur_mask, self.ed_th_low, self.ed_th_high, cv2.THRESH_BINARY_INV)
         inv = 255 - thrs
-        cv2.circle(inv, self.center, self.radius-int(self.delta/2), (0,0,0), 2)
+        cv2.circle(inv, self.center, self.radius-int(self.delta/2), (0,0,0), 20)
         self.contours, self.hierarchy = cv2.findContours(inv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         perimeters = [cv2.arcLength(self.contours[i],True) for i in range(len(self.contours))]
         x = pd.DataFrame(np.array([perimeters, range(len(perimeters))]).T, columns=["perims", "ids"])
@@ -253,7 +255,7 @@ class Chrips(object):
         fig, ax = plt.subplots(dpi=120, figsize=(5, 5))
         self.set_axes(ax, self.rescale(self.images["contours"], 4096), "", True)
         ax.text(-1024, 1072, "Detected CHB (AIA %d)"%self.wavelength, ha="left", va="center", fontdict={"size":10, "color":"r"})
-        ax.text(1024, 1072, self.to_info_str(1), ha="right", va="center", fontdict={"size":10, "color":"b"})
+        if self.write_id: ax.text(1024, 1072, self.to_info_str(1), ha="right", va="center", fontdict={"size":10, "color":"b"})
         ax.text(1.03, 0.5, self.date.strftime("%Y-%m-%d %H:%M:%S UT"), 
                 ha="center", va="center", fontdict={"size":10}, rotation=90, transform=ax.transAxes)
         fig.savefig("data/proc/"+self.filename.replace(".jpg", "_contours.jpg"), bbox_inches="tight")
@@ -264,7 +266,7 @@ class Chrips(object):
         fig, ax = plt.subplots(dpi=120, figsize=(5, 5))
         self.set_axes(ax, self.rescale(self.images["prob_masked_image"], 4096), "")
         ax.text(-1024, 1072, "Detected CHB (AIA %d)"%self.wavelength, ha="left", va="center", fontdict={"size":10, "color":"r"})
-        ax.text(1024, 1072, self.to_info_str(1), ha="right", va="center", fontdict={"size":10, "color":"b"})
+        if self.write_id: ax.text(1024, 1072, self.to_info_str(1), ha="right", va="center", fontdict={"size":10, "color":"b"})
         ax.text(1.03, 0.5, self.date.strftime("%Y-%m-%d %H:%M:%S UT"), 
                 ha="center", va="center", fontdict={"size":10}, rotation=90, transform=ax.transAxes)
         fig.savefig("data/proc/"+self.filename.replace(".jpg", "_out.jpg"), bbox_inches="tight")
