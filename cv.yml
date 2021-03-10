@@ -10,7 +10,7 @@ dependencies:
   - aioftp=0.18.1=pyhd8ed1ab_0
   - aiohttp=3.7.3=py38h497a2fe_1
   - appdirs=1.4.4=pyh9f0ad1d_0
-  - astropy=4.2=py38h497a2fe_2
+  - astropy=4.2=py38h27cfd23_0
   - async-timeout=3.0.1=py_1000
   - attrs=20.3.0=pyhd3deb0d_0
   - beautifulsoup4=4.9.3=pyhb0f4dca_0
@@ -20,9 +20,9 @@ dependencies:
   - brotlipy=0.7.0=py38h497a2fe_1001
   - brunsli=0.1=h2531618_0
   - bzip2=1.0.8=h7b6447c_0
-  - ca-certificates=2020.12.5=ha878542_0
+  - ca-certificates=2021.1.19=h06a4308_0
   - cached-property=1.5.1=py_0
-  - certifi=2020.12.5=py38h578d9bd_1
+  - certifi=2020.12.5=py38h06a4308_0
   - chardet=3.0.4=py38h924ce5b_1008
   - charls=2.1.0=he6710b0_2
   - cloudpickle=1.6.0=py_0
@@ -92,7 +92,7 @@ dependencies:
   - numpy-base=1.19.2=py38hfa32c7d_0
   - olefile=0.46=py_0
   - openjpeg=2.3.0=h05c96fa_1
-  - openssl=1.1.1j=h7f98852_0
+  - openssl=1.1.1j=h27cfd23_0
   - pandas=1.2.1=py38ha9443f7_0
   - parfive=1.2.0=py_0
   - pcre=8.44=he6710b0_0
@@ -150,4 +150,3 @@ dependencies:
     - pynacl==1.4.0
     - sunpy==2.0.7
     - tqdm==4.56.0
-prefix: /home/jupyter-shibaji_chakrobart-968f7/.conda/envs/cv
