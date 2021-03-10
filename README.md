@@ -1,5 +1,5 @@
-# ISWAT_CV
-## Welcome to Coronal Hole Boundary Detection using CHRIPS Algorithm
+# ISWAT - International Space Weather Action Teams
+## Welcome to Coronal Hole Boundary Detection using CHIPS Algorithm
 
 This project is a part of [COSPAR ISWAT](https://www.iswat-cospar.org/iswat-cospar). The COSPAR ISWAT initiative is a global hub for collaborations addressing challenges across the field of space weather.
 
