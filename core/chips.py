@@ -1,4 +1,4 @@
-"""chrips.py: Module is used to implement edge detection tecqniues using CV2"""
+"""chips.py: Module is used to implement edge detection tecqniues using CV2"""
 
 __author__ = "Chakraborty, S."
 __copyright__ = "Copyright 2021, SuperDARN@VT"
@@ -22,7 +22,60 @@ plt.style.context("seaborn")
 from matplotlib import rcParams
 rcParams["font.family"] = "sans-serif"
 
-class Chrips(object):
+import astropy.units as u
+from sunpy.net import Fido, attrs
+import sunpy.map
+from aiapy.calibrate import register, update_pointing, normalize_exposure
+
+import matplotlib.pyplot as plt
+import cv2
+import os
+
+class RegisterAIA(object):
+    
+    def __init__(self, date, wavelength=193, resolution=1024, vmin=10):
+        self.wavelength = wavelength
+        self.date = date
+        self.resolution = resolution
+        self.vmin = vmin
+        self.folder = "data/SDO-Database/{:4d}.{:02d}.{:02d}/{:04d}/{:03d}/".format(self.date.year, self.date.month, self.date.day,
+                                                                             self.resolution, self.wavelength)
+        self.fname = "{:4d}_{:02d}_{:02d}_{:02d}{:02d}{:02d}.png".format(self.date.year, self.date.month,
+                                                                         self.date.day, self.date.hour,
+                                                                         self.date.minute, self.date.second)
+        if not os.path.exists(self.folder): os.system("mkdir -p " + self.folder)
+        if not os.path.exists(self.folder + self.fname):
+            self.normalized()
+            self.to_png()
+        return
+    
+    def normalized(self):
+        q = Fido.search(
+            attrs.Time(self.date.strftime("%Y-%m-%dT%H:%M:%S"), (self.date + dt.timedelta(seconds=11)).strftime("%Y-%m-%dT%H:%M:%S")),
+            attrs.Instrument("AIA"),
+            attrs.Wavelength(wavemin=self.wavelength*u.angstrom, wavemax=self.wavelength*u.angstrom),
+        )
+        self.m = sunpy.map.Map(Fido.fetch(q[0,0]))
+        m_updated_pointing = update_pointing(self.m)
+        m_registered = register(m_updated_pointing)
+        self.m_normalized = normalize_exposure(m_registered)
+        return
+    
+    def to_png(self):
+        norm, m = self.m_normalized, self.m
+        fig, ax = plt.subplots(nrows=1,ncols=1,dpi=100,figsize=(2048/100, 2048/100))
+        norm.plot(annotate=False, axes=ax, vmin=self.vmin)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        fig.savefig("tmp.png",bbox_inches="tight")
+        im = cv2.imread("tmp.png")
+        im = im[10:-10,10:-10]
+        im = cv2.resize(im, (self.resolution, self.resolution))
+        os.remove("tmp.png")
+        cv2.imwrite(self.folder + self.fname, im)
+        return
+
+class Chips(object):
     """ Edge detection by Open-CV """
     
     def __init__(self, filename, folder, _dict_, cfg_file = "data/config/{:3d}.json"):
@@ -40,6 +93,7 @@ class Chrips(object):
         self.contour_infos = {}
         print(" Proc file - ", self.file)
         if os.path.exists(self.file): 
+            self.extn = "." + filename.split(".")[-1]
             self.images = {}
             self.images["src"] = cv2.imread(cv2.samples.findFile(self.file), cv2.IMREAD_COLOR)
             self.images["src"] = self.rect_mask(self.resolution-int(self.resolution/24), self.resolution-1, 
@@ -51,6 +105,8 @@ class Chrips(object):
                         np.zeros_like(self.images["src"]), np.copy(self.images["src"])
             self.images["gray"] = cv2.cvtColor(self.images["src"], cv2.COLOR_BGR2GRAY)
             self.images["contours"] = np.zeros_like(self.images["gray"])
+            self.images["contour_maps"] = np.zeros_like(self.images["gray"])
+            self.images["bin_map"] = np.zeros_like(self.images["gray"])
             self.setup()
         else: raise Exception("File does not exists")
         return
@@ -136,7 +192,7 @@ class Chrips(object):
                 print(" Arc Len:", perimeter)
                 self.image_intensity(gray, idx)
                 self.draw_contour(contour, src)
-                self.rec_depth = 0
+                self.rec_depth, self.parent = 0, int(ix)
                 self.draw_nested_contour(src, self.hierarchy[0, int(idx), 2])
                 ix += 1
         self.images["src_olc"] = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
@@ -165,11 +221,17 @@ class Chrips(object):
     
     def draw_nested_contour(self, img, fc_np, gray=False):
         # [Next, Previous, First_Child, Parent]
-        rd = 50
-        self.rec_depth += 1
-        self.draw_contour(self.contours[fc_np], img, gray, tuple(self.draw_param["contur"]["nest_color"]))
-        if self.hierarchy[0, fc_np, 0] > 0 and self.rec_depth < rd: self.draw_nested_contour(img, self.hierarchy[0, fc_np, 0])
-        if self.hierarchy[0, fc_np, 1] > 0 and self.rec_depth < rd: self.draw_nested_contour(img, self.hierarchy[0, fc_np, 1])
+        for i, pnt in enumerate(self.hierarchy[0,:,3]):
+            if pnt==self.parent: self.draw_contour(self.contours[i], img, gray, tuple(self.draw_param["contur"]["nest_color"]))
+        return
+    
+    def draw_bin_map(self, img, ix, col=(255, 255, 255)):
+        cv2.drawContours(img, self.contours, ix, col, thickness=-1)
+        return
+    
+    def draw_nested_bin_map(self, img):
+        for i, pnt in enumerate(self.hierarchy[0,:,3]):
+            if pnt==self.parent: self.draw_bin_map(img, i, col=(0,0,0))
         return
     
     def image_intensity(self, gray, ix):
@@ -182,12 +244,15 @@ class Chrips(object):
         cv2.drawContours(self.images["prob_masked_gray_image"], self.contours, int(ix), tuple(col), thickness=-1)
         if prob >= self.intensity_prob_threshold:
             self.write_id_index += 1
-            self.rec_depth = 0
+            self.rec_depth, self.parent = 0, int(ix)
             self.draw_contour(self.contours[int(ix)], self.images["prob_masked_image"])
             self.draw_nested_contour(self.images["prob_masked_image"], self.hierarchy[0, int(ix), 2])
-            self.rec_depth = 0
+            self.rec_depth, self.parent = 0, int(ix)
             self.draw_contour(self.contours[int(ix)], self.images["contours"], True)
             self.draw_nested_contour(self.images["contours"], self.hierarchy[0, int(ix), 2], True)
+            self.rec_depth, self.parent = 0, int(ix)
+            self.draw_bin_map(self.images["bin_map"], int(ix))
+            self.draw_nested_bin_map(self.images["bin_map"])
             if hasattr(self, "write_id") and self.write_id: 
                 self.write(self.images["prob_masked_image"], "CH:%d"%self.write_id_index, self.get_center(self.contours[int(ix)]))
                 self.extract_informations(self.contours[int(ix)])
@@ -237,7 +302,7 @@ class Chrips(object):
         self.set_axes(axes[3,0], self.images["prob_masked_gray_image"], titles[6], True)
         self.set_axes(axes[3,1], self.images["prob_masked_image"], titles[7])
         fig.subplots_adjust(hspace=0.5, wspace=0.5)
-        fig.savefig("data/proc/"+self.filename.replace(".jpg", "_analysis.jpg"), bbox_inches="tight")
+        fig.savefig(self.folder + self.filename.replace(self.extn, "_analysis" + self.extn), bbox_inches="tight")
         return
     
     def set_axes(self, ax, image, title, gray_map=False):
@@ -258,8 +323,13 @@ class Chrips(object):
         if self.write_id: ax.text(1024, 1072, self.to_info_str(1), ha="right", va="center", fontdict={"size":10, "color":"b"})
         ax.text(1.03, 0.5, self.date.strftime("%Y-%m-%d %H:%M:%S UT"), 
                 ha="center", va="center", fontdict={"size":10}, rotation=90, transform=ax.transAxes)
-        fig.savefig("data/proc/"+self.filename.replace(".jpg", "_contours.jpg"), bbox_inches="tight")
-        #np.savetxt("data/proc/"+self.filename.replace(".jpg", "_contours.txt"), self.images["contours"])
+        fig.savefig(self.folder + self.filename.replace(self.extn, "_contours" + self.extn), bbox_inches="tight")
+        binmaps = np.copy(self.images["bin_map"])
+        cv2.circle(binmaps, self.center, self.radius, (0,0,0), 3)
+        binmaps = self.rescale(binmaps, 4096)
+        self.fcontours = (binmaps > 0).astype(int)
+        np.savetxt(self.folder + self.filename.replace(self.extn, "_binmaps.txt"), self.fcontours, fmt="%i")
+        cv2.imwrite(self.folder + self.filename.replace(self.extn, "_binmaps" + self.extn), self.fcontours*255)
         return
     
     def final_image(self):
@@ -269,5 +339,5 @@ class Chrips(object):
         if self.write_id: ax.text(1024, 1072, self.to_info_str(1), ha="right", va="center", fontdict={"size":10, "color":"b"})
         ax.text(1.03, 0.5, self.date.strftime("%Y-%m-%d %H:%M:%S UT"), 
                 ha="center", va="center", fontdict={"size":10}, rotation=90, transform=ax.transAxes)
-        fig.savefig("data/proc/"+self.filename.replace(".jpg", "_out.jpg"), bbox_inches="tight")
+        fig.savefig(self.folder + self.filename.replace(self.extn, "_fout" + self.extn), bbox_inches="tight")
         return

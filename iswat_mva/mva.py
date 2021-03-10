@@ -32,7 +32,7 @@ def write(img, txt, blc, fontScale=3, fontColor = (255,255,255), lineType  = 4):
     cv2.putText(img, txt, blc, font, fontScale, fontColor, lineType)
     return
 
-def set_plot_axes(ax, image, title, xlabel="X (arcsec)", ylabel="Y (arcsec)", 
+def set_plot_axes(ax, image, title, xlabel="X (pixel)", ylabel="Y (pixel)", 
              xticks = [-1024,-512,0,512,1024], yticks = [-1024,-512,0,512,1024],
              gray_map=False):
     ax.set_ylabel(ylabel, fontdict={"size":10})
@@ -221,15 +221,15 @@ def to_png(date, ux=193, resolution=1024, vmin=10):
 
 if __name__ == "__main__":
     dn = dt.datetime(2018,5,30,12)
-    #to_png(dn, 193, vmin=10)
-    #to_png(dn, 211, vmin=1)
-    #introduction_image(dn)
-    #analysis_image(dn)
-    #to_png(dt.datetime(2017,10,26), vmin=15)
-    #final_image_parameters(dt.datetime(2017,10,26))
-    #to_png(dt.datetime(2015,9,8,20), vmin=10)
-    #to_png(dt.datetime(2015,9,8,20), 211, vmin=1)
+    to_png(dn, 193, vmin=10)
+    to_png(dn, 211, vmin=1)
+    introduction_image(dn)
+    analysis_image(dn)
+    to_png(dt.datetime(2017,10,26), vmin=15)
+    final_image_parameters(dt.datetime(2017,10,26))
+    to_png(dt.datetime(2015,9,8,20), vmin=10)
+    to_png(dt.datetime(2015,9,8,20), 211, vmin=1)
     example_multiple_events(dt.datetime(2015,9,8,20), [48, 48], [193, 211])
-    #example_multiple_thresholds(dn, [26, 32, 48])
+    example_multiple_thresholds(dn, [26, 32, 48])
     #example_beta()
     

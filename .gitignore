@@ -7,6 +7,9 @@ __pycache__/
 *.so
 data/SDO-Database/*
 data/FITS-Database/*
+data/proc
+iswat_mva/data/proc
+iswat_mva/data/SDO-Database/*
 
 # Distribution / packaging
 .Python

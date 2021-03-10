@@ -56,14 +56,13 @@ class RegisterAIA(object):
         self.date = date
         self.resolution = resolution
         self.vmin = vmin
-        self.folder = "data/SDO-Database/{:4d}.{:02d}.{:02d}/{:d}/{:04d}/".format(self.date.year, self.date.month, self.date.day,
+        self.folder = "data/SDO-Database/{:4d}.{:02d}.{:02d}/{:04d}/{:03d}/".format(self.date.year, self.date.month, self.date.day,
                                                                              self.resolution, self.wavelength)
-        self.fname = self.folder + "{:4d}_{:02d}_{:02d}_{:d}_{:02d}{:02d}{:02d}_{:04d}.png".format(self.date.year, self.date.month,
-                                                                                              self.date.day, self.date.hour,
-                                                                                              self.date.minute, self.date.second, 
-                                                                                              self.resolution, self.wavelength)
+        self.fname = "{:4d}_{:02d}_{:02d}_{:02d}{:02d}{:02d}.png".format(self.date.year, self.date.month,
+                                                                         self.date.day, self.date.hour,
+                                                                         self.date.minute, self.date.second)
         if not os.path.exists(self.folder): os.system("mkdir -p " + self.folder)
-        if not os.path.exists(self.fname):
+        if not os.path.exists(self.folder + self.fname):
             self.normalized()
             self.to_png()
         return
@@ -91,7 +90,7 @@ class RegisterAIA(object):
         im = im[10:-10,10:-10]
         im = cv2.resize(im, (self.resolution, self.resolution))
         os.remove("tmp.png")
-        cv2.imwrite(self.fname, im)
+        cv2.imwrite(self.folder + self.fname, im)
         return
 
 # CNN model
@@ -208,8 +207,8 @@ class Loader(object):
         return
 
 def run_skynet(args, save=True):
-    RegisterAIA(args.date, args.wavelength, args.resolution, vmin=10)
-    load = Loader(args.date, args, save)
+    aia = RegisterAIA(args.date, args.wavelength, args.resolution, vmin=10)
+    load = Loader(aia.fname, aia.folder, args.date, args, save)
     load.load_model().run_forwarding().estimate_CHB()
     if save: load.save_outputs()
     return
