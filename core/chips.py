@@ -79,6 +79,7 @@ class Chips(object):
     """ Edge detection by Open-CV """
     
     def __init__(self, filename, folder, _dict_, cfg_file = "data/config/{:3d}.json"):
+        np.random.seed(0)
         cfg_file = cfg_file.format(_dict_["wavelength"])
         with open(cfg_file, "r") as fp:
             dic = json.load(fp)

@@ -27,6 +27,7 @@ import numpy as np
 import torch.nn.init
 import random
 import os
+import json
 
 _params_ = {
     "_desc": "PyTorch Unsupervised Segmentation",
@@ -73,7 +74,7 @@ class RegisterAIA(object):
             attrs.Instrument("AIA"),
             attrs.Wavelength(wavemin=self.wavelength*u.angstrom, wavemax=self.wavelength*u.angstrom),
         )
-        self.m = sunpy.map.Map(Fido.fetch(q))
+        self.m = sunpy.map.Map(Fido.fetch(q[0,0]))
         m_updated_pointing = update_pointing(self.m)
         m_registered = register(m_updated_pointing)
         self.m_normalized = normalize_exposure(m_registered)
@@ -124,27 +125,84 @@ class SkyNet(nn.Module):
 
 class Loader(object):
     
-    def __init__(self, date, params, save=True):
+    def __init__(self, fname, folder, date, params, save=True, cfg_file = "data/config/{:3d}.json"):
+        self.fname = fname
+        self.folder = folder
+        self.setup(cfg_file, params)
         self.date = date        
         self.params = params
         self.resolution = params.resolution
         self.wavelength = params.wavelength
         self.save = save
-        self.get_file_folder()
+        self.extn = "." + fname.split(".")[-1]
         self.use_cuda = torch.cuda.is_available()
+        self.detect_hough_circles()
         self.im = cv2.imread(self.folder + self.fname)
         self.data = torch.from_numpy( np.array([self.im.transpose( (2, 0, 1) ).astype("float32")/255.]) )
         if self.use_cuda: self.data = self.data.cuda()
         self.data = Variable(self.data)
         return
     
-    def get_file_folder(self):
-        self.folder = "data/SDO-Database/{:4d}.{:02d}.{:02d}/{:d}/{:04d}/".format(self.date.year, self.date.month, self.date.day,
-                                                                             self.resolution, self.wavelength)
-        self.fname = "{:4d}_{:02d}_{:02d}_{:d}_{:02d}{:02d}{:02d}_{:04d}.png".format(self.date.year, self.date.month,
-                                                                                     self.date.day, self.date.hour,
-                                                                                     self.date.minute, self.date.second, 
-                                                                                     self.resolution, self.wavelength)
+    def rescale(self, img, to):
+        """ Resacle the images """
+        dsize = (to, to)
+        img = cv2.resize(img, dsize)
+        return img
+    
+    def setup(self, cfg_file, params):
+        """ Load parameters """
+        _dict_ = {}
+        for k in vars(params).keys():
+            _dict_[k] = vars(args)[k]
+        cfg_file = cfg_file.format(_dict_["wavelength"])
+        with open(cfg_file, "r") as fp:
+            dic = json.load(fp)
+            for p in dic.keys():
+                if not hasattr(self, p): setattr(self, p, dic[p])
+        for p in _dict_.keys():
+            setattr(self, p, _dict_[p])
+        self._dict_ = _dict_
+        mult = int(self.resolution/512) + 0.5
+        self.prims = np.array(self.prims) * mult
+        self.delta = int(self.resolution/128)
+        
+        self.images = {}
+        self.images["src"] = cv2.imread(cv2.samples.findFile(self.folder+self.fname), cv2.IMREAD_COLOR)
+        self.img_params = {"resolution": self.images["src"].shape[0]}
+        self.images["src"] = self.rescale(self.images["src"], self.resolution)
+        self.images["org"] = np.copy(cv2.cvtColor(self.images["src"], cv2.COLOR_BGR2RGB))            
+        self.images["prob_masked_gray_image"], self.images["prob_masked_image"] =\
+        np.zeros_like(self.images["src"]), np.copy(self.images["src"])
+        self.images["gray"] = cv2.cvtColor(self.images["src"], cv2.COLOR_BGR2GRAY)
+        self.images["contours"] = np.zeros_like(self.images["gray"])
+        self.images["contour_maps"] = np.zeros_like(self.images["gray"])
+        self.images["bin_map"] = np.zeros_like(self.images["gray"])
+        self.images["hc_mask"] = np.zeros_like(self.images["gray"])
+        self.images["prob_masked_image_ol"] = np.copy(self.images["src"])
+        return
+    
+    def detect_hough_circles(self):
+        """ Detecting the Hough Circles """
+        gray = np.copy(self.images["gray"])
+        rows = self.resolution
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, rows / 8,
+                                   param1=self.hc_param1, param2=self.hc_param2,
+                                   minRadius=int(rows/3), maxRadius=int(rows/2))
+        if circles is not None:
+            circles = np.uint16(np.around(circles))
+            radi = int(rows/2)
+            for i in circles[0, :]:
+                if radi - self.alpha <= i[0] <= radi + self.alpha and radi - self.alpha <= i[1] <= radi + self.alpha:
+                    self.center = (i[0], i[1])
+                    self.radius = i[2]
+                    self.create_hc_mask()
+        return
+    
+    def create_hc_mask(self):
+        # HC mask create
+        mask = cv2.circle(self.images["hc_mask"], self.center, self.radius, 255, -1)
+        self.images["hc_mask"] = mask
+        self.NzC = np.count_nonzero(mask)
         return
     
     def load_model(self):
@@ -167,50 +225,122 @@ class Loader(object):
         return self
     
     def run_forwarding(self):
-        for batch_idx in range(self.params.maxIter):
-            self.optimizer.zero_grad()
-            self.output = self.model( self.data )[ 0 ]
-            self.output = self.output.permute( 1, 2, 0 ).contiguous().view( -1, self.params.nChannel )
+        if not os.path.exists(self.folder + self.fname.replace(self.extn, "_seg" + self.extn)):
+            for batch_idx in range(self.params.maxIter):
+                self.optimizer.zero_grad()
+                self.output = self.model( self.data )[ 0 ]
+                self.output = self.output.permute( 1, 2, 0 ).contiguous().view( -1, self.params.nChannel )
 
-            self.outputHP = self.output.reshape( (self.im.shape[0], self.im.shape[1], self.params.nChannel) )
-            self.HPy = self.outputHP[1:, :, :] - self.outputHP[0:-1, :, :]
-            self.HPz = self.outputHP[:, 1:, :] - self.outputHP[:, 0:-1, :]
-            self.lhpy = self.loss_hpy(self.HPy, self.HPy_target)
-            self.lhpz = self.loss_hpz(self.HPz, self.HPz_target)
+                self.outputHP = self.output.reshape( (self.im.shape[0], self.im.shape[1], self.params.nChannel) )
+                self.HPy = self.outputHP[1:, :, :] - self.outputHP[0:-1, :, :]
+                self.HPz = self.outputHP[:, 1:, :] - self.outputHP[:, 0:-1, :]
+                self.lhpy = self.loss_hpy(self.HPy, self.HPy_target)
+                self.lhpz = self.loss_hpz(self.HPz, self.HPz_target)
 
-            ignore, target = torch.max( self.output, 1 )
-            im_target = target.data.cpu().numpy()
-            nLabels = len(np.unique(im_target))
-            self.loss = self.params.stepsize_sim * self.loss_fn(self.output, target) + self.params.stepsize_con * (self.lhpy + self.lhpz)
-            self.loss.backward()
-            self.optimizer.step()
-            print (batch_idx, "/", self.params.maxIter, "|", " label num :", nLabels, " | loss : %.2f"%self.loss.item())
-            if nLabels <= self.params.minLabels or self.params.los > self.loss: 
-                print (" >> nLabels:", nLabels, " reached minLabels:", self.params.minLabels, " with loss: %.2f."%self.loss.item())
-                break
+                ignore, target = torch.max( self.output, 1 )
+                im_target = target.data.cpu().numpy()
+                nLabels = len(np.unique(im_target))
+                self.loss = self.params.stepsize_sim * self.loss_fn(self.output, target) + self.params.stepsize_con * (self.lhpy + self.lhpz)
+                self.loss.backward()
+                self.optimizer.step()
+                print (batch_idx, "/", self.params.maxIter, "|", " label num :", nLabels, " | loss : %.2f"%self.loss.item())
+                if nLabels <= self.params.minLabels or self.params.los > self.loss: 
+                    print (" >> nLabels:", nLabels, " reached minLabels:", self.params.minLabels, " with loss: %.2f."%self.loss.item())
+                    break
         return self
     
     def save_outputs(self):
-        output = self.model(self.data)[0]
-        output = output.permute(1, 2, 0).contiguous().view(-1, self.params.nChannel)
-        ignore, target = torch.max(output, 1)
-        self.im_target = target.data.cpu().numpy()
-        im_target_rgb = np.array([self.label_colours[c % 100] for c in self.im_target])
-        im_target_rgb = im_target_rgb.reshape(self.im.shape).astype(np.uint8)
-        cv2.imwrite(self.folder + self.fname.replace(".png", "_seg.png"), im_target_rgb)
-        return
-    
-    def estimate_CHB(self):
+        if not os.path.exists(self.folder + self.fname.replace(self.extn, "_seg" + self.extn)):
+            output = self.model(self.data)[0]
+            output = output.permute(1, 2, 0).contiguous().view(-1, self.params.nChannel)
+            ignore, target = torch.max(output, 1)
+            self.im_target = target.data.cpu().numpy()
+            self.unique_targets = np.array([self.label_colours[c % 100] for c in np.unique(self.im_target)])
+            self.im_target_rgb = np.array([self.label_colours[c % 100] for c in self.im_target])
+            self.im_target_rgb = self.im_target_rgb.reshape(self.im.shape).astype(np.uint8)
+            cv2.imwrite(self.folder + self.fname.replace(self.extn, "_seg" + self.extn), self.im_target_rgb)
         return self
     
-    def convert_to_binary(self):
+    def check_intensity(self, mask):
+        # Check the intensity bound on the output
+        ints = False
+        gray = np.copy(self.images["gray"])
+        gray = cv2.bitwise_and(gray, gray, mask=mask)
+        if np.quantile(gray.ravel(), 0.05) >= 0 and np.quantile(gray.ravel(), 0.95) <= 100: ints = True
+        return ints
+    
+    def estimate_CHB(self):
+        if not os.path.exists(self.folder + self.fname.replace(self.extn, "_msk" + self.extn)):
+            maskList = []
+            for targ in self.unique_targets:
+                mask = cv2.inRange(self.im_target_rgb, targ-1, targ+1)
+                mask = cv2.bitwise_and(mask, mask, mask=self.images["hc_mask"])
+                if np.count_nonzero(mask) < 0.1*self.NzC and self.check_intensity(mask):
+                    maskList.append(mask)
+            self.totalmask = np.array(maskList).sum(axis=0)
+            cv2.imwrite(self.folder + self.fname.replace(self.extn, "_msk" + self.extn), self.totalmask)
+        else:
+            fname = self.folder + self.fname.replace(self.extn, "_msk" + self.extn)
+            self.totalmask = cv2.cvtColor(cv2.imread(fname, cv2.IMREAD_COLOR), cv2.COLOR_BGR2GRAY)
+        return self
+    
+    def rescale_prob(self, prob, l=0., u=0.5):
+        prob = prob*(u-l) + l
+        return prob
+    
+    def calculate_probabilistic_boundaries(self):
+        self.contours, self.hierarchy = cv2.findContours((255-self.totalmask).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        for ix in range(len(self.contours)):
+            if ix > 0: self.draw_contour(self.contours[int(ix)], self.images["prob_masked_image"])
+        cv2.imwrite(self.folder + self.fname.replace(self.extn, "_stg0.0_out" + self.extn), self.images["prob_masked_image"])
+        gray, mask = np.copy(self.images["gray"]), np.zeros_like(self.images["gray"])
+        contours = self.contours[1:]
+        cv2.drawContours(mask, contours, -1, 255, -1); mask = cv2.bitwise_and(gray, gray, mask=mask)
+        maskplot = np.copy(mask)
+        cv2.imwrite(self.folder + self.fname.replace(self.extn, "_stg0.1_out" + self.extn), mask)
+        thds = [24, 32, 48, 64, 96, 128, 255]
+        for td in thds:
+            masked = np.zeros_like(mask)
+            masked[mask <= td] = 255
+            masked = cv2.bitwise_and(masked, masked, mask=mask)
+            contours, hierarchy = cv2.findContours((255 - masked).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            for ix in range(len(contours)):
+                if ix > 0 and hierarchy[0,ix,3] == 0:
+                    cimg = np.zeros_like(gray)
+                    cv2.drawContours(cimg, contours, int(ix), color=255, thickness=-1)
+                    pts = np.where(cimg == 255)
+                    intensity = self.intensity_threshold-gray[pts[0], pts[1]].ravel().astype(int)
+                    prob = 1-np.mean(1./(1.+np.exp(intensity)))
+                    colw = np.array([255,255,255])
+                    print(td, "->", prob)
+                    cv2.drawContours(maskplot, contours, int(ix), color=255*prob, thickness=1)
+                    self.draw_contour(contours[int(ix)], self.images["prob_masked_image_ol"], col=tuple(colw*prob), line_thick=1)
+            cv2.imwrite(self.folder + self.fname.replace(self.extn, "_stg0.2.%03d_out" + self.extn)%td, masked)
+        cv2.imwrite(self.folder + self.fname.replace(self.extn, "_stg1.0_out" + self.extn), self.images["prob_masked_image_ol"])
+        maskplot = cv2.cvtColor(maskplot, cv2.COLOR_GRAY2RGB)
+        maskplot = cv2.applyColorMap(maskplot, cv2.COLORMAP_JET)
+        cv2.imwrite(self.folder + self.fname.replace(self.extn, "_stg1.1_out" + self.extn), maskplot)
+        return self
+    
+    def draw_contour(self, contour, img, gray=False, col=None, line_thick=None):
+        if line_thick is None: line_thick = self.draw_param["contur"]["thick"]
+        if col is None: col=tuple(self.draw_param["contur"]["color"])
+        for _x in range(contour.shape[0]-1):
+            if gray: cv2.line(img, (contour[_x,0,0], contour[_x,0,1]), (contour[_x+1,0,0], contour[_x+1,0,1]), (255,255,255), line_thick)
+            else: cv2.line(img, (contour[_x,0,0], contour[_x,0,1]), (contour[_x+1,0,0], contour[_x+1,0,1]), col, line_thick)
+        if gray: cv2.line(img, (contour[0,0,0], contour[0,0,1]), (contour[-1,0,0], contour[-1,0,1]), (255,255,255), line_thick)
+        else: cv2.line(img, (contour[0,0,0], contour[0,0,1]), (contour[-1,0,0], contour[-1,0,1]),  col, line_thick)
         return
+    
+    def save_files_outputs(self):
+        return self
 
 def run_skynet(args, save=True):
     aia = RegisterAIA(args.date, args.wavelength, args.resolution, vmin=10)
     load = Loader(aia.fname, aia.folder, args.date, args, save)
-    load.load_model().run_forwarding().estimate_CHB()
-    if save: load.save_outputs()
+    load.load_model().run_forwarding().save_outputs().estimate_CHB()
+    load.calculate_probabilistic_boundaries()
+    if save: load.save_files_outputs()
     return
 
 if __name__ == "__main__":
