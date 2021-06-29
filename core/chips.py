@@ -1,7 +1,7 @@
 """chips.py: Module is used to implement edge detection tecqniues using CV2"""
 
 __author__ = "Chakraborty, S."
-__copyright__ = "Copyright 2021, SuperDARN@VT"
+__copyright__ = ""
 __credits__ = []
 __license__ = "MIT"
 __version__ = "1.0."
@@ -158,6 +158,9 @@ class Chips(object):
             circles = np.uint16(np.around(circles))
             radi = int(rows/2)
             for i in circles[0, :]:
+                print(radi, self.alpha)
+                print(i[0], radi - self.alpha, radi + self.alpha)
+                print(i[1], radi - self.alpha, radi + self.alpha)
                 if radi - self.alpha <= i[0] <= radi + self.alpha and radi - self.alpha <= i[1] <= radi + self.alpha:
                     self.center = (i[0], i[1])
                     self.radius = i[2] + self.delta

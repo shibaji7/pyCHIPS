@@ -3,7 +3,7 @@
 """utils.py: Image segnemtation preprocessing """
 
 __author__ = "Chakraborty, S."
-__copyright__ = "Copyright 2021, SuperDARN@VT"
+__copyright__ = ""
 __credits__ = []
 __license__ = "MIT"
 __version__ = "1.0."

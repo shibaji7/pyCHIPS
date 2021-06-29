@@ -3,7 +3,7 @@
 """skynet.py: Image segnemtation algoritm for Solar Disk: SkyNet"""
 
 __author__ = "Chakraborty, S."
-__copyright__ = "Copyright 2021, SuperDARN@VT"
+__copyright__ = ""
 __credits__ = []
 __license__ = "MIT"
 __version__ = "1.0."
@@ -11,6 +11,8 @@ __maintainer__ = "Chakraborty, S."
 __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
+import matplotlib.pyplot as plt
+import matplotlib as mpl    
 from dateutil import parser as prs
 import pandas as pd
 import datetime as dt
@@ -298,12 +300,14 @@ class Loader(object):
         cv2.drawContours(mask, contours, -1, 255, -1); mask = cv2.bitwise_and(gray, gray, mask=mask)
         maskplot = np.copy(mask)
         cv2.imwrite(self.folder + self.fname.replace(self.extn, "_stg0.1_out" + self.extn), mask)
-        thds = [24, 32, 48, 64, 96, 128, 255]
+        thds = [16, 24, 32, 48, 64, 96, 128, 255]
+        linked_list = []
         for td in thds:
             masked = np.zeros_like(mask)
             masked[mask <= td] = 255
             masked = cv2.bitwise_and(masked, masked, mask=mask)
-            contours, hierarchy = cv2.findContours((255 - masked).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            blurs = cv2.blur((255 - masked).astype(np.uint8), (3, 3))
+            contours, hierarchy = cv2.findContours(blurs, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             for ix in range(len(contours)):
                 if ix > 0 and hierarchy[0,ix,3] == 0:
                     cimg = np.zeros_like(gray)
@@ -312,7 +316,8 @@ class Loader(object):
                     intensity = self.intensity_threshold-gray[pts[0], pts[1]].ravel().astype(int)
                     prob = 1-np.mean(1./(1.+np.exp(intensity)))
                     colw = np.array([255,255,255])
-                    print(td, "->", prob)
+                    #print(td, "->", prob)
+                    linked_list.append({"prob":prob, "color":255*prob, "contour":contours[int(ix)]})
                     cv2.drawContours(maskplot, contours, int(ix), color=255*prob, thickness=1)
                     self.draw_contour(contours[int(ix)], self.images["prob_masked_image_ol"], col=tuple(colw*prob), line_thick=1)
             cv2.imwrite(self.folder + self.fname.replace(self.extn, "_stg0.2.%03d_out" + self.extn)%td, masked)
@@ -320,7 +325,25 @@ class Loader(object):
         maskplot = cv2.cvtColor(maskplot, cv2.COLOR_GRAY2RGB)
         maskplot = cv2.applyColorMap(maskplot, cv2.COLORMAP_JET)
         cv2.imwrite(self.folder + self.fname.replace(self.extn, "_stg1.1_out" + self.extn), maskplot)
+        self.plot_image_dev(self.images["prob_masked_image_ol"], linked_list)
+        self.plot_image_dev(maskplot, linked_list, cmap=mpl.cm.jet, ext="_cb_jet")
         return self
+    
+    def plot_image_dev(self, image, objs, shape=(15,14), cmap=mpl.cm.gray, ext="_cb_gray"):
+        df = pd.DataFrame.from_records(objs)[["prob","color"]]
+        fig = plt.figure(figsize=(4, 4), dpi=180)
+        ax = plt.subplot2grid(shape, (0,0), rowspan=shape[0]-2, colspan=shape[0]-2)
+        ax.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        ax.set_xticks([])
+        ax.set_yticks([])
+        norm = mpl.colors.Normalize(vmin=0, vmax=1)
+        ax = plt.subplot2grid(shape, (2,shape[0]-2), rowspan=9, colspan=1)
+        cb1 = mpl.colorbar.ColorbarBase(ax, cmap=cmap,
+                                        norm=norm,
+                                        orientation="vertical")
+        cb1.set_label("Pr(CH)")
+        fig.savefig(self.folder + self.fname.replace(self.extn, ext + self.extn), bbox_inches="tight")
+        return
     
     def draw_contour(self, contour, img, gray=False, col=None, line_thick=None):
         if line_thick is None: line_thick = self.draw_param["contur"]["thick"]
