@@ -46,7 +46,7 @@ class RegisterAIA(object):
         if not os.path.exists(self.folder): os.system("mkdir -p " + self.folder)
         if not os.path.exists(self.folder + self.fname):
             self.normalized()
-            self.to_png()
+            #self.to_png()
         return
     
     def normalized(self):
