@@ -52,7 +52,7 @@ class CHIPS(object):
         self.aia = RegisterAIA(_dict_["date"], _dict_["wavelength"], _dict_["resolution"], _dict_["vmin"])
         self.folder = local.format(date=_dict_["date"].strftime("%Y-%m-%d-%H-%M"))
         if not os.path.exists(self.folder): os.system("mkdir -p " + self.folder)
-        self.saveimg()
+        self.stage01analysis()
         return
     
     def stage01analysis(self):
