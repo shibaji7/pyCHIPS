@@ -79,7 +79,7 @@ class CHIPS(object):
         ax.set_xticks([])
         ax.set_yticks([])
         ax = fig.add_subplot(133)
-        ax.imshow(mask, origin="lower", cmap=cmap)
+        ax.imshow(mask, origin="lower", cmap="gary")
         ax.set_xticks([])
         ax.set_yticks([])
         fig.subplots_adjust(wspace=0.1, hspace=0.1)
