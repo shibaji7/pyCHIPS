@@ -13,7 +13,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
-from matplotlib.collections import PatchCollection
 
 import os
 import datetime as dt
@@ -56,7 +55,6 @@ class CHIPS(object):
         return
     
     def saveimg(self):
-        patches = []
         file = self.folder + "01_raw.png"
         fig = plt.figure()
         ax = fig.add_subplot(121)
@@ -66,7 +64,12 @@ class CHIPS(object):
         ax.set_yticks([])
         ax = fig.add_subplot(122)
         self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
-        patches.append(Circle((2084, 2084), self.aia.m_normalized.rsun_obs.value))
+        c_kw = {'fill': False,
+                'color': 'white',
+                'zorder': 100}
+        c_kw.setdefault('radius', self.aia.m_normalized.rsun_obs.value)
+        C = Circle([2084, 2084], **c_kw)
+        ax.add_artist(C)
         ax.set_xticks([])
         ax.set_yticks([])
         fig.subplots_adjust(wspace=0.1, hspace=0.1)
