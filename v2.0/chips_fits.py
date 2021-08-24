@@ -13,6 +13,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
+from matplotlib.colors import LogNorm
 
 import os
 import datetime as dt
@@ -81,11 +82,11 @@ class CHIPS(object):
         ax.set_xticks([])
         ax.set_yticks([])
         ax = fig.add_subplot(223)
-        ax.imshow(self.disk_data, origin="lower", cmap="gray")
+        ax.imshow(self.disk_data, origin="lower", cmap="gray", norm=LogNorm(vmin=0.01, vmax=1000))
         ax.set_xticks([])
         ax.set_yticks([])
         ax = fig.add_subplot(224)
-        ax.imshow(self.disk_filt_data, origin="lower", cmap="gray")
+        ax.imshow(self.disk_filt_data, origin="lower", cmap="gray", norm=LogNorm(vmin=0.01, vmax=1000))
         ax.set_xticks([])
         ax.set_yticks([])
         fig.subplots_adjust(wspace=0.1, hspace=0.1)
