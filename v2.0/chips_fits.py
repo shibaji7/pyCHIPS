@@ -72,7 +72,7 @@ class CHIPS(object):
         
         if plot:
             file = self.folder + "01_analysis.png"
-            fig = plt.figure()
+            fig = plt.figure(figsize=(4,4))
             ax = fig.add_subplot(221)
             self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
             self.aia.m_normalized.draw_limb()
@@ -86,11 +86,14 @@ class CHIPS(object):
             ux = np.copy(self.disk_data)
             ux[ux <= 0.] = 1
             ux = np.log10(ux)
-            ax.imshow(ux, origin="lower", cmap="gray")
+            ax.imshow(ux, origin="lower", cmap="gray", vmin=1, vmax=4)
             ax.set_xticks([])
             ax.set_yticks([])
             ax = fig.add_subplot(224)
-            ax.imshow(self.disk_filt_data, origin="lower", cmap="gray", norm=LogNorm(vmin=0.01, vmax=10000))
+            ux = np.copy(self.disk_filt_data)
+            ux[ux <= 0.] = 1
+            ux = np.log10(ux)
+            ax.imshow(ux, origin="lower", cmap="gray", vmin=1, vmax=4)
             ax.set_xticks([])
             ax.set_yticks([])
             fig.subplots_adjust(wspace=0.1, hspace=0.1)
