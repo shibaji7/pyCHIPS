@@ -59,16 +59,17 @@ class CHIPS(object):
         patches = []
         file = self.folder + "01_raw.png"
         fig = plt.figure()
-        ax = fig.add_subplot(211)
+        ax = fig.add_subplot(121)
         self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
         self.aia.m_normalized.draw_limb()
         ax.set_xticks([])
         ax.set_yticks([])
-        ax = fig.add_subplot(212)
+        ax = fig.add_subplot(122)
         self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
-        #patches.append(Circle((2084, 2084), r))
+        patches.append(Circle((2084, 2084), self.aia.m_normalized.rsun_obs.value))
         ax.set_xticks([])
         ax.set_yticks([])
+        fig.subplots_adjust(wspace=0.1, hspace=0.1)
         fig.savefig(file, bbox_inches="tight")
         return
     
