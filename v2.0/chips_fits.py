@@ -59,7 +59,7 @@ class CHIPS(object):
         self.stage01analysis()
         return
     
-    def stage01analysis(self):
+    def stage01analysis(self, plot=True):
         rsun = self.aia.m_normalized.rsun_obs.value
         mask = np.zeros_like(self.aia.m_normalized.data)
         mask[:] = np.nan
@@ -70,27 +70,31 @@ class CHIPS(object):
         self.disk_data = mask * self.aia.m_normalized.data
         self.disk_filt_data = mask * signal.medfilt2d(self.aia.m_normalized.data, self._dict_["medfilt.kernel"])
         
-        file = self.folder + "01_analysis.png"
-        fig = plt.figure()
-        ax = fig.add_subplot(221)
-        self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
-        self.aia.m_normalized.draw_limb()
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax = fig.add_subplot(222)
-        ax.imshow(mask, origin="lower", cmap="gray")
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax = fig.add_subplot(223)
-        ax.imshow(self.disk_data, origin="lower", cmap="gray", norm=LogNorm(vmin=0.01, vmax=1000))
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax = fig.add_subplot(224)
-        ax.imshow(self.disk_filt_data, origin="lower", cmap="gray", norm=LogNorm(vmin=0.01, vmax=1000))
-        ax.set_xticks([])
-        ax.set_yticks([])
-        fig.subplots_adjust(wspace=0.1, hspace=0.1)
-        fig.savefig(file, bbox_inches="tight")
+        if plot:
+            file = self.folder + "01_analysis.png"
+            fig = plt.figure()
+            ax = fig.add_subplot(221)
+            self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
+            self.aia.m_normalized.draw_limb()
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax = fig.add_subplot(222)
+            ax.imshow(mask, origin="lower", cmap="gray")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax = fig.add_subplot(223)
+            ux = np.copy(self.disk_data)
+            ux[ux <= 0.] = 1
+            ux = np.log10(ux)
+            ax.imshow(ux, origin="lower", cmap="gray")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax = fig.add_subplot(224)
+            ax.imshow(self.disk_filt_data, origin="lower", cmap="gray", norm=LogNorm(vmin=0.01, vmax=10000))
+            ax.set_xticks([])
+            ax.set_yticks([])
+            fig.subplots_adjust(wspace=0.1, hspace=0.1)
+            fig.savefig(file, bbox_inches="tight")
         return
     
     def estimate_thresholds_on_solar_disk(self):
