@@ -10,6 +10,7 @@ __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
 import os
+import datetime as dt
 
 import astropy.units as u
 from sunpy.net import Fido, attrs
