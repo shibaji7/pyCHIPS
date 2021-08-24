@@ -17,6 +17,7 @@ from matplotlib.patches import Circle
 import os
 import datetime as dt
 import numpy as np
+from scipy import signal
 import cv2
 
 import astropy.units as u
@@ -48,11 +49,12 @@ class RegisterAIA(object):
     
 class CHIPS(object):
     
-    def __init__(self, _dict_, local="tmp/{date}/"):
+    def __init__(self, _dict_, local="tmp/{date}/", rscale=0.6):
         self._dict_ = _dict_
         self.aia = RegisterAIA(_dict_["date"], _dict_["wavelength"], _dict_["resolution"], _dict_["vmin"])
         self.folder = local.format(date=_dict_["date"].strftime("%Y-%m-%d-%H-%M"))
         if not os.path.exists(self.folder): os.system("mkdir -p " + self.folder)
+        self.rscale = rscale
         self.stage01analysis()
         return
     
@@ -60,26 +62,30 @@ class CHIPS(object):
         rsun = self.aia.m_normalized.rsun_obs.value
         mask = np.zeros_like(self.aia.m_normalized.data)
         mask[:] = np.nan
-        cv2.circle(mask, (2048,2048), int(rsun), 255, -1)
+        cv2.circle(mask, (2048,2048), int(rsun/self.rscale), 255, -1)
         mask[np.isnan(mask)] = 0.
         mask[mask > 1] = 1.
+        self.disk_mask = np.copy(mask)
+        self.disk_data = mask * aia.m_normalized.data
+        self.disk_filt_data = mask * signal.medfilt2d(aia.m_normalized.data, self._dict_["medfilt.kernel"])
+        
         file = self.folder + "01_analysis.png"
         fig = plt.figure()
-        ax = fig.add_subplot(131)
+        ax = fig.add_subplot(221)
         self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
         self.aia.m_normalized.draw_limb()
         ax.set_xticks([])
         ax.set_yticks([])
-        ax = fig.add_subplot(132)
-        self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
-        c_kw = {"fill": False, "color": "white", "zorder": 100}
-        c_kw.setdefault("radius", rsun)
-        C = Circle([0, 0], **c_kw)
-        ax.add_artist(C)
+        ax = fig.add_subplot(222)
+        ax.imshow(mask, origin="lower", cmap="gray")
         ax.set_xticks([])
         ax.set_yticks([])
-        ax = fig.add_subplot(133)
-        ax.imshow(mask, origin="lower", cmap="gray")
+        ax = fig.add_subplot(223)
+        ax.imshow(self.disk_data, origin="lower", cmap="gray")
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax = fig.add_subplot(224)
+        ax.imshow(self.disk_filt_data, origin="lower", cmap="gray")
         ax.set_xticks([])
         ax.set_yticks([])
         fig.subplots_adjust(wspace=0.1, hspace=0.1)
@@ -96,4 +102,5 @@ if __name__ == "__main__":
     _dict_["wavelength"] = 193
     _dict_["resolution"] = 4096
     _dict_["vmin"] = 35
+    _dict_["medfilt.kernel"] = 3
     CHIPS(_dict_)
