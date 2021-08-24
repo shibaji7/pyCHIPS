@@ -16,6 +16,7 @@ from matplotlib.patches import Circle
 
 import os
 import datetime as dt
+import numpy as np
 import cv2
 
 import astropy.units as u
