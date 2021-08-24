@@ -58,7 +58,7 @@ class CHIPS(object):
     
     def stage01analysis(self):
         rsun = self.aia.m_normalized.rsun_obs.value
-        mask = np.zeros_like(aia.m_normalized.data)
+        mask = np.zeros_like(self.aia.m_normalized.data)
         mask[:] = np.nan
         cv2.circle(mask, (2048,2048), int(rsun), 255, -1)
         mask[np.isnan(mask)] = 0.
