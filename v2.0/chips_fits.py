@@ -86,14 +86,14 @@ class CHIPS(object):
             ux = np.copy(self.disk_data)
             ux[ux <= 0.] = 1
             ux = np.log10(ux)
-            ax.imshow(ux, origin="lower", cmap="gray", vmin=1, vmax=4)
+            ax.imshow(ux, origin="lower", cmap="gray", vmin=1, vmax=3)
             ax.set_xticks([])
             ax.set_yticks([])
             ax = fig.add_subplot(224)
             ux = np.copy(self.disk_filt_data)
             ux[ux <= 0.] = 1
             ux = np.log10(ux)
-            ax.imshow(ux, origin="lower", cmap="gray", vmin=1, vmax=4)
+            ax.imshow(ux, origin="lower", cmap="gray", vmin=1, vmax=3)
             ax.set_xticks([])
             ax.set_yticks([])
             fig.subplots_adjust(wspace=0.1, hspace=0.1)
