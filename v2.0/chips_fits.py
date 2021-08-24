@@ -64,11 +64,10 @@ class CHIPS(object):
         ax.set_yticks([])
         ax = fig.add_subplot(122)
         self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
-        c_kw = {'fill': False,
-                'color': 'white',
-                'zorder': 100}
-        c_kw.setdefault('radius', self.aia.m_normalized.rsun_obs.value)
-        C = Circle([2084, 2084], **c_kw)
+        c_kw = {"fill": False, "color": "white", "zorder": 100}
+        print(self.aia.m_normalized.rsun_obs.to_value(u.pix))
+        c_kw.setdefault("radius", self.aia.m_normalized.rsun_obs.to_value(u.pix))
+        C = Circle([0, 0], **c_kw)
         ax.add_artist(C)
         ax.set_xticks([])
         ax.set_yticks([])
