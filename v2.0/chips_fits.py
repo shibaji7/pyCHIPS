@@ -65,8 +65,8 @@ class CHIPS(object):
         ax = fig.add_subplot(122)
         self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
         c_kw = {"fill": False, "color": "white", "zorder": 100}
-        print(self.aia.m_normalized.rsun_obs.value/0.6)
-        c_kw.setdefault("radius", self.aia.m_normalized.rsun_obs.value/0.6)
+        print(self.aia.m_normalized.rsun_obs.value)
+        c_kw.setdefault("radius", self.aia.m_normalized.rsun_obs.value)
         C = Circle([0, 0], **c_kw)
         ax.add_artist(C)
         ax.set_xticks([])
