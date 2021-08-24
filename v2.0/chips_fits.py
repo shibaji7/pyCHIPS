@@ -66,8 +66,8 @@ class CHIPS(object):
         mask[np.isnan(mask)] = 0.
         mask[mask > 1] = 1.
         self.disk_mask = np.copy(mask)
-        self.disk_data = mask * aia.m_normalized.data
-        self.disk_filt_data = mask * signal.medfilt2d(aia.m_normalized.data, self._dict_["medfilt.kernel"])
+        self.disk_data = mask * self.aia.m_normalized.data
+        self.disk_filt_data = mask * signal.medfilt2d(self.aia.m_normalized.data, self._dict_["medfilt.kernel"])
         
         file = self.folder + "01_analysis.png"
         fig = plt.figure()
