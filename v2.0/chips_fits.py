@@ -16,6 +16,7 @@ from matplotlib.patches import Circle
 
 import os
 import datetime as dt
+import cv2
 
 import astropy.units as u
 from sunpy.net import Fido, attrs
@@ -54,21 +55,30 @@ class CHIPS(object):
         self.saveimg()
         return
     
-    def saveimg(self):
-        file = self.folder + "01_raw.png"
+    def stage01analysis(self):
+        rsun = self.aia.m_normalized.rsun_obs.value
+        mask = np.zeros_like(aia.m_normalized.data)
+        mask[:] = np.nan
+        cv2.circle(mask, (2048,2048), int(rsun), 255, -1)
+        mask[np.isnan(mask)] = 0.
+        mask[mask > 1] = 1.
+        file = self.folder + "01_analysis.png"
         fig = plt.figure()
-        ax = fig.add_subplot(121)
+        ax = fig.add_subplot(131)
         self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
         self.aia.m_normalized.draw_limb()
         ax.set_xticks([])
         ax.set_yticks([])
-        ax = fig.add_subplot(122)
+        ax = fig.add_subplot(132)
         self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
         c_kw = {"fill": False, "color": "white", "zorder": 100}
-        print(self.aia.m_normalized.rsun_obs.value)
-        c_kw.setdefault("radius", self.aia.m_normalized.rsun_obs.value)
+        c_kw.setdefault("radius", rsun)
         C = Circle([0, 0], **c_kw)
         ax.add_artist(C)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax = fig.add_subplot(133)
+        ax.imshow(mask, origin="lower", cmap=cmap)
         ax.set_xticks([])
         ax.set_yticks([])
         fig.subplots_adjust(wspace=0.1, hspace=0.1)
