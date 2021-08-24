@@ -12,6 +12,8 @@ __status__ = "Research"
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
+from matplotlib.collections import PatchCollection
 
 import os
 import datetime as dt
@@ -54,18 +56,30 @@ class CHIPS(object):
         return
     
     def saveimg(self):
+        patches = []
         file = self.folder + "01_raw.png"
         fig = plt.figure()
-        ax = fig.add_subplot(111)
+        ax = fig.add_subplot(211)
         self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
         self.aia.m_normalized.draw_limb()
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax = fig.add_subplot(212)
+        self.aia.m_normalized.plot(annotate=False, axes=ax, vmin=self._dict_["vmin"])
+        #patches.append(Circle((2084, 2084), r))
+        ax.set_xticks([])
+        ax.set_yticks([])
         fig.savefig(file, bbox_inches="tight")
+        return
+    
+    def estimate_thresholds_on_solar_disk(self):
+        
         return
     
 if __name__ == "__main__":
     _dict_ = {}
     _dict_["date"] = dt.datetime(2018,5,30,12)
     _dict_["wavelength"] = 193
-    _dict_["resolution"] = 1024
+    _dict_["resolution"] = 4096
     _dict_["vmin"] = 35
     CHIPS(_dict_)
