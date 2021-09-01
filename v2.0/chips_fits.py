@@ -60,15 +60,22 @@ class CHIPS(object):
         return
     
     def stage01analysis(self, plot=True):
+        self.properties = {}
         rsun = self.aia.m_normalized.rsun_obs.value
         mask = np.zeros_like(self.aia.m_normalized.data)
         mask[:] = np.nan
         cv2.circle(mask, (2048,2048), int(rsun/self.rscale), 255, -1)
         mask[np.isnan(mask)] = 0.
         mask[mask > 1] = 1.
-        self.disk_mask = np.copy(mask)
-        self.disk_data = mask * self.aia.m_normalized.data
-        self.disk_filt_data = mask * signal.medfilt2d(self.aia.m_normalized.data, self._dict_["medfilt.kernel"])
+        disk_mask = np.copy(mask)
+        disk_data = mask * self.aia.m_normalized.data
+        disk_filt_data = mask * signal.medfilt2d(self.aia.m_normalized.data, self._dict_["medfilt.kernel"])
+        self.["radius"] = {"arcsec": rsun, "pix": int(rsun/self.rscale)}
+        self.["disk"] = {"mask": np.copy(mask), 
+                         "raw": {"data": self.aia.m_normalized.data, "disk": disk_data},
+                         "filter": {"data": signal.medfilt2d(self.aia.m_normalized.data, self._dict_["medfilt.kernel"]), 
+                                    "disk": disk_filt_data},
+                        }
         
         if plot:
             file = self.folder + "01_analysis.png"
@@ -83,14 +90,14 @@ class CHIPS(object):
             ax.set_xticks([])
             ax.set_yticks([])
             ax = fig.add_subplot(223)
-            ux = np.copy(self.disk_data)
+            ux = np.copy(disk_data)
             ux[ux <= 0.] = 1
             ux = np.log10(ux)
             ax.imshow(ux, origin="lower", cmap="gray", vmin=1, vmax=3)
             ax.set_xticks([])
             ax.set_yticks([])
             ax = fig.add_subplot(224)
-            ux = np.copy(self.disk_filt_data)
+            ux = np.copy(disk_filt_data)
             ux[ux <= 0.] = 1
             ux = np.log10(ux)
             ax.imshow(ux, origin="lower", cmap="gray", vmin=1, vmax=3)
@@ -100,7 +107,8 @@ class CHIPS(object):
             fig.savefig(file, bbox_inches="tight")
         return
     
-    def estimate_thresholds_on_solar_disk(self):
+    def stage02analysis(self, plot=True):
+        
         
         return
     
