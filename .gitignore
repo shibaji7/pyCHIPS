@@ -10,6 +10,7 @@ data/FITS-Database/*
 data/proc
 iswat_mva/data/proc
 iswat_mva/data/SDO-Database/*
+*tmp*
 
 # Distribution / packaging
 .Python

@@ -1,4 +1,4 @@
-name: cv
+name: chips
 channels:
   - pytorch
   - conda-forge
@@ -26,6 +26,7 @@ dependencies:
   - chardet=3.0.4=py38h924ce5b_1008
   - charls=2.1.0=he6710b0_2
   - cloudpickle=1.6.0=py_0
+  - colorama=0.4.4=pyh9f0ad1d_0
   - cpuonly=1.0=0
   - cudatoolkit=11.0.221=h6bb024c_0
   - cycler=0.10.0=py38_0
@@ -145,8 +146,11 @@ dependencies:
     - bcrypt==3.2.0
     - cffi==1.14.4
     - cryptography==3.3.1
+    - joblib==1.1.0
     - opencv-python==4.5.1.48
     - paramiko==2.7.2
     - pynacl==1.4.0
+    - scikit-learn==1.0.1
     - sunpy==2.0.7
+    - threadpoolctl==3.0.0
     - tqdm==4.56.0
