@@ -11,6 +11,12 @@ data/proc
 iswat_mva/data/proc
 iswat_mva/data/SDO-Database/*
 *tmp*
+*.fits*
+*.jpg*
+*.png*
+*.zip*
+*.bz2*
+*.gz*
 
 # Distribution / packaging
 .Python
