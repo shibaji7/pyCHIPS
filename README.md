@@ -9,6 +9,12 @@ This project is a part of [COSPAR ISWAT](https://www.iswat-cospar.org/iswat-cosp
 - Second, to develop strategies to quantitatively assess the spatial and temporal uncertainty of coronal hole boundary locations. 
 - Third, to use this information to further improve the predictive capabilities of ambient solar wind models.
 
+### Setup 
+- Download this Repository via git-clone.
+- Make sure you have anaconda environment and conda running.
+- Run `conda env create -f chips.yml` command to create `chips` environment.
+- Run `ipython kernel install --user --name chips` to install ipython kernel.
+- Run Ipython notebooks inside docs under `chips` envioronment.
 
 Example output is given 
 
