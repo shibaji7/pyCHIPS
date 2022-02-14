@@ -5,18 +5,9 @@ __pycache__/
 
 # C extensions
 *.so
-data/SDO-Database/*
-data/FITS-Database/*
-data/proc
-iswat_mva/data/proc
-iswat_mva/data/SDO-Database/*
+
+*v1.0*
 *tmp*
-*.fits*
-*.jpg*
-*.png*
-*.zip*
-*.bz2*
-*.gz*
 
 # Distribution / packaging
 .Python
