@@ -8,8 +8,16 @@
     "h_bins": 5000,
     "h_thresh": null,
     "ht_peak_ratio": 5,
+    "xsplit": 2,
+    "ysplit": 2,
+    "sliding_winow": {
+        "wlen": 2048,
+        "wsep": 512
+    },
+    "threshold_range": [0, 50],
     "files": {
-        "dir": "tmp/{date}/"
+        "dir": "tmp/{date}/",
+        "synoptic": "tmp/synoptic/CR{CR}/"
     },
     "v_models": {
         "name": ["ASSA", "CHARM", "CHIMERA", "CHORTLE", "CNN", "HAMADA", "JAROLIM", "SPOCA", "TH35"],

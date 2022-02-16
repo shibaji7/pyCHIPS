@@ -32,6 +32,10 @@ import sunpy.map
 from aiapy.calibrate import register, update_pointing, normalize_exposure
 import aiapy.psf
 
+from astropy.utils.data import download_file
+import sunpy.map
+import sunpy.io
+
 import chips_utils as cutils
 
 class RegisterAIA(object):
@@ -87,6 +91,8 @@ class CHIPS(object):
         self.extract_histogram()
         # Extract histogram - for partial map
         self.extract_histograms()
+        # Extract histogram - for partial map - sliding window
+        self.extract_sliding_histograms()
         # Extract CH abd CHB
         self.extract_CHs_CHBs()
         # Run model validation
@@ -157,7 +163,7 @@ class CHIPS(object):
         if not hasattr(self.sol_properties, "sol_histogram"):
             logger.info("Extract solar histograms.")
             h_data = self.sol_properties.sol_filter.filt_disk * self.sol_properties.sol_mask.n_mask
-            d = h_data.ravel()[~np.isnan(h_data.ravel())] 
+            d = h_data.ravel()[~np.isnan(h_data.ravel())]
             h, be = np.histogram(d, bins=self.h_bins, density=True)
             if self.h_thresh is None: self.h_thresh = np.max(h)/self.ht_peak_ratio
             peaks, _ = signal.find_peaks(h, height=self.h_thresh)
@@ -175,17 +181,76 @@ class CHIPS(object):
         """
         Extract histograms for each section
         """
+        if not hasattr(self.sol_properties, "sol_histograms")\
+            and (self.xsplit is not None) and (self.ysplit is not None):
+            regions, r_peaks = {}, []
+            k = 0
+            filt_disk, n_mask = self.sol_properties.sol_filter.filt_disk, self.sol_properties.sol_mask.n_mask
+            xunit, yunit = int(self.resolution/self.xsplit), int(self.resolution/self.ysplit)
+            for x in range(self.xsplit):
+                for y in range(self.ysplit):
+                    r_disk = filt_disk[x*xunit:(x+1)*xunit, y*yunit:(y+1)*xunit]
+                    r_mask = n_mask[x*xunit:(x+1)*xunit, y*yunit:(y+1)*xunit]
+                    d = (r_disk*r_mask).ravel()
+                    d = d[~np.isnan(d.ravel())]
+                    h, be = np.histogram(d, bins=self.h_bins, density=True)
+                    if self.h_thresh is None: self.h_thresh = np.max(h)/self.ht_peak_ratio
+                    peaks, _ = signal.find_peaks(h, height=self.h_thresh)
+                    bc = be[:-1] + np.diff(be)
+                    if len(peaks) > 1: r_peaks.extend(peaks[:2])
+                    regions[k] = Namespace(**dict(
+                        peaks = peaks, hbase = h, bound = bc, data = d, h_thresh=self.h_thresh,
+                        h_bins = self.h_bins
+                    ))
+                    k += 1
+            self.sol_properties.sol_histograms = Namespace(**dict(
+                reg = regions, fpeak = r_peaks, keys=range(k)
+            ))
+            self.save_current_run()
+        return
+    
+    def extract_sliding_histograms(self):
+        """
+        Extract histograms for each section
+        """
+        if not hasattr(self.sol_properties, "sol_sld_histograms")\
+            and (self.xsplit is not None) and (self.ysplit is not None):
+            regions, r_peaks = {}, []
+            k = 0
+            filt_disk, n_mask = self.sol_properties.sol_filter.filt_disk, self.sol_properties.sol_mask.n_mask
+            for xs in range(0, self.resolution-self.sliding_winow.wlen, self.sliding_winow.wsep):
+                for ys in range(0, self.resolution-self.sliding_winow.wlen, self.sliding_winow.wsep):
+                    xl, yl = xs + self.sliding_winow.wlen, ys + self.sliding_winow.wlen
+                    r_disk = filt_disk[xs:xl, ys:yl]
+                    r_mask = n_mask[xs:xl, ys:yl]
+                    d = (r_disk*r_mask).ravel()
+                    d = d[~np.isnan(d.ravel())]
+                    h, be = np.histogram(d, bins=self.h_bins, density=True)
+                    if self.h_thresh is None: self.h_thresh = np.max(h)/self.ht_peak_ratio
+                    peaks, _ = signal.find_peaks(h, height=self.h_thresh)
+                    bc = be[:-1] + np.diff(be)
+                    if len(peaks) > 1: r_peaks.extend(peaks[:2])
+                    regions[k] = Namespace(**dict(
+                        peaks = peaks, hbase = h, bound = bc, data = d, h_thresh=self.h_thresh,
+                        h_bins = self.h_bins
+                    ))
+                    k += 1
+            self.sol_properties.sol_sld_histograms = Namespace(**dict(
+                reg = regions, fpeak = r_peaks, keys=range(k)
+            ))
+            self.save_current_run()
         return
     
     def extract_CHs_CHBs(self):
         """
         Find the CHs and CHBs and associated probability
         """
+        threshold_range = np.arange(self.threshold_range[0], self.threshold_range[1])
         if not hasattr(self.sol_properties, "sol_chs_chbs"):
             logger.info("Extract CHs and CHBs.")
             if len(self.sol_properties.sol_histogram.peaks) > 0:
                 l0 = self.sol_properties.sol_histogram.peaks[0]
-                limits = np.round(l0 + np.arange(5,50), 4)
+                limits = np.round(l0 + threshold_range, 4)
                 data = self.sol_properties.sol_filter.filt_disk * self.sol_properties.sol_mask.n_mask
                 dtmp_map, prob_map, lth_map = {}, {}, {}
                 for lim in limits:
@@ -268,7 +333,8 @@ class CHIPS(object):
                 k = keys[smax_args]
                 im = cv2.resize(vars(self.dmap)[str(k)], (self.resolution, self.resolution))
                 z = mask * im
-                cutils.plot_compare_data(self.files.dir, z, o, model, k, "$\sigma\sim%.2f$"%smax, vars(pmap)[str(k)])
+                cutils.plot_compare_data(self.files.dir, z, o, model, k, "$\sigma\sim%.2f$"%smax, 
+                                         vars(pmap)[str(k)])
                 output[model] = Namespace(**dict(p=vars(pmap)[str(k)], lim=k))
                 logger.warning(f"CHIPS validated against {model}")
             self.sol_properties.sol_validation = Namespace(**output)
@@ -283,6 +349,8 @@ class CHIPS(object):
         summ = cutils.Summary(self, self.files.dir)
         summ.create_mask_filter_4by4_plot()
         summ.create_histogram_1by1_plot()
+        summ.create_histogram_NbyM_plot()
+        summ.create_histogram_NbyM_plot(slide=True)
         if hasattr(self, "dmap"): summ.create_CH_CHB_plots()
         return
     
@@ -308,5 +376,5 @@ class CHIPS(object):
         """
         Clear latest run
         """
-        os.system("rm -rf %s/*"%self.files.dir[:-1])
+        os.system(f"rm -rf {self.files.dir[:-1]}/*")
         return
