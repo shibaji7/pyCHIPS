@@ -15,7 +15,3 @@ This project is a part of [COSPAR ISWAT](https://www.iswat-cospar.org/iswat-cosp
 - Run `conda env create -f chips.yml` command to create `chips` environment.
 - Run `ipython kernel install --user --name chips` to install ipython kernel.
 - Run Ipython notebooks inside docs under `chips` envioronment.
-
-Example output is given 
-
-![Image](https://github.com/shibaji7/ISWAT_CV/blob/main/iswat_mva/data/mva.Figure03.png)
