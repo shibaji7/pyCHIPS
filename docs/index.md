@@ -2,7 +2,7 @@
 Author(s): Shibaji Chakraborty
 
 Disclaimer:
-SCUBAS is under the MIT license found in the root directory LICENSE.md 
+pyCHIPS is under the MIT license found in the root directory LICENSE.md 
 Everyone is permitted to copy and distribute verbatim copies of this license 
 document.
 
@@ -17,9 +17,9 @@ pyCHIPS is an open source Python-based model to identify Coronal Holes (CH) and 
 
 ## Source Code 
 
-The library source code can be found on the [CHIPS GitHub](https://github.com/shibaji7/pyCHIPS) repository. 
+The library source code can be found on the [pyCHIPS GitHub](https://github.com/shibaji7/pyCHIPS) repository. 
 
-If you have any questions or concerns please submit an **Issue** on the [SCUBAS GitHub](https://github.com/shibaji7/pyCHIPS) repository. 
+If you have any questions or concerns please submit an **Issue** on the [pyCHIPS GitHub](https://github.com/shibaji7/pyCHIPS) repository. 
 
 ## Table of Contents 
   - [Installation](user/install.md)

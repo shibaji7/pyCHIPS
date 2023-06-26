@@ -2,7 +2,7 @@
 Author(s): Shibaji Chakraborty
 
 Disclaimer:
-SCUBAS is under the MIT license found in the root directory LICENSE.md 
+pyCHIPS is under the MIT license found in the root directory LICENSE.md 
 Everyone is permitted to copy and distribute verbatim copies of this license 
 document.
 

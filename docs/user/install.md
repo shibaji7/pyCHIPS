@@ -2,7 +2,7 @@
 Author(s): Shibaji Chakraborty
 
 Disclaimer:
-SCUBAS is under the MIT license found in the root directory LICENSE.md 
+pyCHIPS is under the MIT license found in the root directory LICENSE.md 
 Everyone is permitted to copy and distribute verbatim copies of this license 
 document.
 
@@ -57,9 +57,9 @@ pychips's setup will download the following dependencies:
 
 
 ## Virtual Environments
-It is recommended to install scubas in one of the suggested virtual environments if you have multiple python/pip 3 version on your computer, or do not want to affect the main system's python libraries. 
+It is recommended to install pyCHIPS in one of the suggested virtual environments if you have multiple python/pip 3 version on your computer, or do not want to affect the main system's python libraries. 
 
-The following virtual environments have been tested by scubas developers:"
+The following virtual environments have been tested by pyCHIPS developers:"
 
 ### pip Virtual Environment
 Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
@@ -67,7 +67,7 @@ Instructions can be found here [virtual environment](https://packaging.python.or
 1. `$ python3 -m pip install --user virtualenv` (Install virtual environment package)
 2. `$ python3 -m virtualenv <environment name>`  (Make your virtual environment)
 3. `$ source <environment name>/bin/activate`  (Activate the virtual environment)
-4. `$ pip install scubas`    (Install scubas)
+4. `$ pip install pyCHIPS`    (Install pyCHIPS)
 
 !!! Note
     If you have multiple versions of python 3 on your machine, you can access a specific version by: `python<version number>`. 
@@ -78,7 +78,7 @@ Instructions can be found here [conda environment](https://uoa-eresearch.github.
 
 1. `$ conda create -n yourenvname python=3.7 anaconda`
 2. `$ conda activate yourenvname`
-3. `$ pip install scubas`
+3. `$ pip install pyCHIPS`
 
 #### Adding the environment to PyCharm
 
@@ -94,7 +94,7 @@ To set the project interpreter to the anaconda environment:
 ## Local Install
 **pip3 install**
 
-`pip3 install --user scubas`
+`pip3 install --user pyCHIPS`
 
 ## System Install 
-`sudo pip3 install scubas`
+`sudo pip3 install pyCHIPS`
