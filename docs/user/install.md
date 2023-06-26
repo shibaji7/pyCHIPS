@@ -52,8 +52,8 @@ pychips's setup will download the following dependencies:
 - [pandas](https://pandas.pydata.org/)
 - [loguru](https://loguru.readthedocs.io/en/stable/)
 - [SciencePlots](https://pypi.org/project/SciencePlots/1.0.2/)
-- [sunpy](https://docs.sunpy.org/en/stable/)
-- [aiapy](https://aiapy.readthedocs.io/en/stable/)
+- [SunPy](https://docs.sunpy.org/en/stable/)
+- [AIAPy](https://aiapy.readthedocs.io/en/stable/)
 
 
 ## Virtual Environments
