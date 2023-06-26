@@ -29,4 +29,3 @@ If you have any questions or concerns please submit an **Issue** on the [SCUBAS 
     - [Objectives](tutorial/objectives.md)
     - [Open Flux Problem](tutorial/openflux.md)
     - [Example Event](tutorial/example.md)
-  - Code Documentation:
