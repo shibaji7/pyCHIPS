@@ -6,8 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# Extensions
 *v1.0*
 *tmp*
+*data*
+*depricated*
 
 # Distribution / packaging
 .Python
