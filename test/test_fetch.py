@@ -15,14 +15,14 @@ import datetime as dt
 import unittest
 import sys
 sys.path.append("../chips/")
-from fetch import SolarDisk, RegisterAIA
+from fetch import SolarDisk
 
 class TestSolarDisk(unittest.TestCase):
 
-    def test_fetch_191_solar_disk(self):
+    def test_fetch_193_solar_disk_norm(self):
         aia = SolarDisk(
-            dt.datetime(2018, 5, 30, 12),
-            191
+            dt.datetime(2018, 5, 18, 12),
+            193
         )
         self.assertTrue(hasattr(aia, "raw"))
         self.assertIsNotNone(aia.raw)
@@ -30,16 +30,19 @@ class TestSolarDisk(unittest.TestCase):
         self.assertIsNotNone(aia.registred)
         self.assertTrue(hasattr(aia, "normalized"))
         self.assertIsNotNone(aia.normalized)
+        return
 
+    def test_fetch_193_solar_disk(self):
         aia = SolarDisk(
-            dt.datetime(2018, 5, 30, 12),
-            191, norm=False
+            dt.datetime(2018, 5, 18, 12),
+            193, norm=False
         )
         self.assertTrue(hasattr(aia, "raw"))
         self.assertIsNotNone(aia.raw)
         self.assertFalse(hasattr(aia, "normalized"))
         self.assertFalse(hasattr(aia, "registred"))
         return
+        
 
 if __name__ == "__main__":
     unittest.main()
