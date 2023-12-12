@@ -126,16 +126,17 @@ class ImagePalette(object):
             np.array([regions.__dict__[key].lim for key in keys]),
             np.array([regions.__dict__[key].prob for key in keys])
         )
+        n_probs = (probs-probs.min())/(probs.max()-probs.min())
         logger.info(f"Total regions plotted with seperators {len(keys)}")
         norm = matplotlib.colors.Normalize(
             vmin=prob_lower_lim, vmax=1.
         )
-        cmap = matplotlib.cm.get_cmap("Spectral")
+        cmap = matplotlib.cm.get_cmap("Spectral_r")
         stacked = np.max(
             [
                 regions.__dict__[key].map * p 
-                for key, p in zip(keys, probs) 
-                if p > prob_lower_lim
+                for key, p in zip(keys, n_probs) 
+                if p >= prob_lower_lim
             ],
             axis = 0,
         )
@@ -175,16 +176,14 @@ class ImagePalette(object):
             np.array([regions.__dict__[key].lim for key in keys]),
             np.array([regions.__dict__[key].prob for key in keys])
         )
+        n_probs = (probs-probs.min())/(probs.max()-probs.min())
         fig_num = len(self.axes)
         total_num_regions = len(keys)
         logger.info(f"Total regions plotted with seperators {len(keys)}, but will be plotted {fig_num}")
-        keys = keys[::int(total_num_regions/fig_num)]
-        for key in keys:
+        keys = keys[::int(total_num_regions/fig_num)][:len(self.axes)]
+        for key, p in zip(keys, n_probs):
             ax = self.__axis__()
-            map, p = (
-                regions.__dict__[key].map,
-                regions.__dict__[key].prob
-            )
+            map = regions.__dict__[key].map
             ax.imshow(
                 map, cmap="gray", 
                 vmax=1, vmin=0, 
@@ -234,6 +233,7 @@ class ChipsPlotter(object):
         dpi=None,
         nrows=None,
         ncols=None,
+        prob_lower_lim=0.8,
     ):
         figsize = figsize if figsize else self.figsize
         dpi = dpi if dpi else self.dpi
@@ -259,7 +259,10 @@ class ChipsPlotter(object):
             pixel_radius=self.disk.pixel_radius,
             resolution=self.disk.resolution,
         )
-        ip.ovearlay_localized_regions(self.disk.solar_ch_regions)
+        ip.ovearlay_localized_regions(
+            self.disk.solar_ch_regions, 
+            prob_lower_lim=prob_lower_lim
+        )
         annotations = []
         annotations.append(
             Annotation(
@@ -297,7 +300,7 @@ class ChipsPlotter(object):
         ip.plot_binary_localized_maps(
             self.disk.solar_ch_regions,
             self.disk.pixel_radius,
-            self.disk.resolution
+            self.disk.resolution,
         )
         annotations = []
         annotations.append(

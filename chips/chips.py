@@ -39,7 +39,7 @@ class Chips(object):
         hist_xsplit: int=2,
         hist_ysplit: int=2,
         threshold_range: List[float]=[0, 20],
-        porb_threshold: float=0.5,
+        porb_threshold: float=0.8,
     ) -> None:
         self.aia = aia
         self.base_folder = base_folder
@@ -321,7 +321,8 @@ class Chips(object):
             dpi, nrows, ncols,
         )
         cp.create_diagonestics_plots(
-            self.folder + f"/diagonestics_{disk.wavelength}_{disk.resolution}.png"
+            self.folder + f"/diagonestics_{disk.wavelength}_{disk.resolution}.png",
+            prob_lower_lim=0.
         )
         cp.create_output_stack(
             fname = self.folder + f"/ouputstack_{disk.wavelength}_{disk.resolution}.png"
