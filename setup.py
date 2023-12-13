@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="pyCHIPS",
-    version="0.1.0",
+    version="0.2",
     packages=["chips"],
     package_dir={"chips": "chips"},
     package_data={"chips": []},
@@ -14,11 +14,8 @@ setup(
     description="CHIPS: Coronal Hole Identification using Probabilistic Scheme",
     long_description="Identify coronal holes and coronal hole boundaries using probabilistic schemes",
     install_requires=[
-        "pandas",
-        "matplotlib>=3.2",
+        "matplotlib>=3.3.2",
         "loguru",
-        "xarray",
-        "SciencePlots",
         "sunpy",
         "aiapy",
     ],

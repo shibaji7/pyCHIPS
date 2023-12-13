@@ -11,24 +11,25 @@ __maintainer__ = "Chakraborty, S."
 __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
-from typing import List, Any
+import datetime as dt
+import glob
+import os
+from pathlib import Path
+from typing import Any, List
+
 import aiapy.psf
 import astropy.units as u
+import requests
 import sunpy.io
 import sunpy.map
 from aiapy.calibrate import normalize_exposure, register, update_pointing
 from loguru import logger
 from sunpy.net import Fido, attrs
-import datetime as dt
-import glob
-from pathlib import Path
-import os
-import requests
 
 
 class SolarDisk(object):
     """A simple object subclass that holds all the informations on solar disk.
-    
+
     Methods:
             fetch
             set_value
@@ -38,17 +39,16 @@ class SolarDisk(object):
         fetch_solar_parameters
         plot_disk_images
     """
-    
+
     def __init__(
-        self, 
-        date: dt.datetime, 
-        wavelength: int, 
-        resolution: int=4096,
-        apply_psf: bool=False,
-        norm: bool=True,
+        self,
+        date: dt.datetime,
+        wavelength: int,
+        resolution: int = 4096,
+        apply_psf: bool = False,
+        norm: bool = True,
     ) -> None:
-        """Initialize the parameters provided by kwargs.        
-        """
+        """Initialize the parameters provided by kwargs."""
         self.date = date
         self.wavelength = wavelength
         self.resolution = resolution if resolution else 4096
@@ -56,28 +56,29 @@ class SolarDisk(object):
         self.norm = norm
         self.desciption = f"Solar Disk during {date} seeing through {wavelength}A, observing at {resolution} px."
         self.fetch()
-        if self.norm: self.normalization()
+        if self.norm:
+            self.normalization()
         return
-    
+
     def set_value(self, key: str, value: Any) -> None:
         """Methods to set an attribute inside `chips.fetch.SolarDisk` object.
-        
+
         Arguments:
             key: Key/name of the attribute
             value: Value to set as attribute
-        
+
         Returns:
             Method returns None
         """
         setattr(self, key, value)
         return
-    
+
     def get_value(self, key: str) -> Any:
         """Methods to get an attribute from `chips.fetch.SolarDisk` object.
-        
+
         Arguments:
             key: Key/name of the attribute
-        
+
         Returns:
             Method returns a `object` if available
         """
@@ -85,9 +86,9 @@ class SolarDisk(object):
 
     def search_local(self) -> str:
         """Methods to search AIA disk '.fits' files in local system
-        
+
         Arguments:
-        
+
         Returns:
             Method returns a file name if file avilable.
         """
@@ -103,9 +104,9 @@ class SolarDisk(object):
 
     def fetch(self) -> None:
         """Methods to fetch AIA disk '.fits' files from remote 'JSOC' or local storage.
-        
+
         Arguments:
-        
+
         Returns:
             Method returns None
         """
@@ -132,23 +133,25 @@ class SolarDisk(object):
             logger.info(f"Record found: len({len(q)})")
             logger.info(f"Registering FITS data")
             self.raw = sunpy.map.Map(Fido.fetch(q[0, 0]))
-        if self.resolution!=4096: pass
-        if self.apply_psf: self.psf = aiapy.psf.deconvolve(self.raw)
+        if self.resolution != 4096:
+            pass
+        if self.apply_psf:
+            self.psf = aiapy.psf.deconvolve(self.raw)
         return
 
     def normalization(self) -> None:
         """Methods to search AIA files in local system
-        
+
         Arguments:
-        
+
         Returns:
             Method returns a file name if file avilable
         """
         key = "psf" if self.apply_psf else "raw"
-        logger.info(f"Normalize map using L({self.wavelength}), R({self.resolution}) on {self.date}")
-        updated_point = update_pointing(
-            getattr(self, key)
+        logger.info(
+            f"Normalize map using L({self.wavelength}), R({self.resolution}) on {self.date}"
         )
+        updated_point = update_pointing(getattr(self, key))
         self.registred = register(updated_point)
         self.normalized = normalize_exposure(self.registred)
         self.fetch_solar_parameters()
@@ -159,18 +162,23 @@ class SolarDisk(object):
         self.rscale, self.r_sun, self.rsun_obs = (
             self.normalized._meta["cdelt2"],
             self.normalized._meta["r_sun"],
-            self.normalized._meta["rsun_obs"]
+            self.normalized._meta["rsun_obs"],
         )
-        self.pixel_radius = int(self.rsun_obs/self.rscale)
+        self.pixel_radius = int(self.rsun_obs / self.rscale)
         return
 
     def plot_disk_images(
-        self, types=["raw","normalized"],
-        figsize=(6,6), dpi=240, nrows=1, ncols=2,
+        self,
+        types=["raw", "normalized"],
+        figsize=(6, 6),
+        dpi=240,
+        nrows=1,
+        ncols=2,
         fname=None,
     ):
         plotting_types = [t for t in types if hasattr(self, t)]
-        from plots import ImagePalette, Annotation
+        from plots import Annotation, ImagePalette
+
         im = ImagePalette(
             figsize=figsize,
             dpi=dpi,
@@ -179,24 +187,27 @@ class SolarDisk(object):
         )
         for t in plotting_types:
             im.draw_colored_disk(
-                self.get_value(t), self.pixel_radius,
-                resolution=self.resolution
+                self.get_value(t), self.pixel_radius, resolution=self.resolution
             )
         annotations = []
         annotations.append(
             Annotation(
-                self.disk.date.strftime("%Y-%m-%d %H:%M"), 
-                0.05, 1.05, "left", "center"
+                self.disk.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
             )
         )
         annotations.append(
             Annotation(
-                r"$\lambda=%d\AA$"%self.disk.wavelength, 
-                -0.05, 0.99, "center", "top", rotation=90
+                r"$\lambda=%d\AA$" % self.disk.wavelength,
+                -0.05,
+                0.99,
+                "center",
+                "top",
+                rotation=90,
             )
         )
         ip.annotate(annotations)
-        if fname: ip.save(fname)
+        if fname:
+            ip.save(fname)
         ip.close()
         return
 
@@ -207,12 +218,12 @@ class RegisterAIA(object):
     """
 
     def __init__(
-        self, 
+        self,
         date: dt.datetime,
-        wavelengths: List[int]=[193],
-        resolutions: List[int]=[4096],
-        apply_psf: bool=False,
-        norm: bool=True,
+        wavelengths: List[int] = [193],
+        resolutions: List[int] = [4096],
+        apply_psf: bool = False,
+        norm: bool = True,
     ) -> None:
         self.wavelengths = wavelengths
         self.date = date
@@ -224,21 +235,19 @@ class RegisterAIA(object):
             self.datasets[wv] = dict()
             for res in resolutions:
                 self.datasets[wv][res] = SolarDisk(
-                    self.date, wv, res,
-                    apply_psf=self.apply_psf,
-                    norm=self.norm
+                    self.date, wv, res, apply_psf=self.apply_psf, norm=self.norm
                 )
         return
 
+
 class SynopticMap(object):
-    """
-    """
+    """ """
 
     def __init__(
-        self, 
-        date, 
+        self,
+        date,
         wavelength=193,
-        location="sunpy/data/synoptic/", 
+        location="sunpy/data/synoptic/",
         base_url="http://jsoc.stanford.edu/data/aia/synoptic/",
         uri_regex="{:04d}/{:02d}/{:02d}/H{:02d}00/",
         file_name_regex="AIA{:04d}{:02d}{:02d}_{:02d}00_0{:03d}.fits",
@@ -255,23 +264,21 @@ class SynopticMap(object):
         self.apply_psf = apply_psf
         # Create all the urls and file names
         self.fname = file_name_regex.format(
-            date.year, date.month, date.day, 
-            date.hour, wavelength
+            date.year, date.month, date.day, date.hour, wavelength
         )
         self.remote_file_url = (
-            base_url + uri_regex.format(
-                date.year, date.month, date.day, date.hour
-            ) + self.fname
+            base_url
+            + uri_regex.format(date.year, date.month, date.day, date.hour)
+            + self.fname
         )
         logger.info(f"Remote file {self.remote_file_url}")
-        self.local_file_dir = str(
-            Path.home() / location
-        )
+        self.local_file_dir = str(Path.home() / location)
         os.makedirs(self.local_file_dir, exist_ok=True)
         self.local_file = self.local_file_dir + "/" + self.fname
         logger.info(f"Local file {self.local_file}")
         self.fetch()
-        if self.norm: self.normalization()
+        if self.norm:
+            self.normalization()
         return
 
     def fetch(self):
@@ -287,7 +294,7 @@ class SynopticMap(object):
     def set_value(self, key: str, value: object) -> None:
         setattr(self, key, value)
         return
-    
+
     def get_value(self, key: str) -> Any:
         return getattr(self, key)
 

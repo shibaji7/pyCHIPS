@@ -12,13 +12,14 @@ __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
 import datetime as dt
-import unittest
 import sys
+import unittest
+
 sys.path.append("../chips/")
 from fetch import SolarDisk, SynopticMap
 
-class TestSolarDisk(unittest.TestCase):
 
+class TestSolarDisk(unittest.TestCase):
     # def test_fetch_193_solar_disk_norm(self):
     #     aia = SolarDisk(
     #         dt.datetime(2018, 5, 18, 12),
@@ -44,11 +45,9 @@ class TestSolarDisk(unittest.TestCase):
     #     return
 
     def test_synoptic_map_193(self):
-        syn = SynopticMap(
-            dt.datetime(2018, 5, 18, 12)
-        )
+        syn = SynopticMap(dt.datetime(2018, 5, 18, 12))
         return
-        
+
 
 if __name__ == "__main__":
     unittest.main()

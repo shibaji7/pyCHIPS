@@ -11,19 +11,23 @@ __maintainer__ = "Chakraborty, S."
 __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
-import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 from loguru import logger
 
 
 class Annotation(object):
-    """
-    """
+    """ """
 
     def __init__(
-        self, txt, xloc, yloc, ha, va,
-        fontdict={"color":"k","size":10},
+        self,
+        txt,
+        xloc,
+        yloc,
+        ha,
+        va,
+        fontdict={"color": "k", "size": 10},
         rotation=0,
     ):
         self.txt = txt
@@ -35,11 +39,11 @@ class Annotation(object):
         self.fontdict = fontdict
         return
 
-class ImagePalette(object):
 
+class ImagePalette(object):
     def __init__(
         self,
-        figsize=(6,6),
+        figsize=(6, 6),
         dpi=240,
         nrows=1,
         ncols=1,
@@ -48,8 +52,10 @@ class ImagePalette(object):
         plt.rcParams["font.family"] = font_family
         if font_family == "sans-serif":
             plt.rcParams["font.sans-serif"] = [
-                "Tahoma", "DejaVu Sans", 
-                "Lucida Grande", "Verdana"
+                "Tahoma",
+                "DejaVu Sans",
+                "Lucida Grande",
+                "Verdana",
             ]
         self.fig, axs = plt.subplots(
             nrows=nrows,
@@ -61,14 +67,16 @@ class ImagePalette(object):
         )
         self.ticker = 0
         self.axes = []
-        if nrows*ncols == 1: ax = self.axes.append(axs)
-        else: self.axes.extend(axs.ravel())
+        if nrows * ncols == 1:
+            ax = self.axes.append(axs)
+        else:
+            self.axes.extend(axs.ravel())
         return
-    
+
     def close(self):
         plt.close("all")
         return
-    
+
     def save(self, fname):
         self.fig.subplots_adjust(hspace=0.01, wspace=0.01)
         self.fig.savefig(fname, bbox_inches="tight")
@@ -82,24 +90,17 @@ class ImagePalette(object):
             self.ticker += 1
         ax.set_axis_off()
         return ax
-    
+
     def __circle__(self, ax, pixel_radius, resolution):
         ax.add_patch(
             plt.Circle(
-                (resolution/2, resolution/2), 
-                pixel_radius, color="w", fill=False
+                (resolution / 2, resolution / 2), pixel_radius, color="w", fill=False
             )
         )
         return
 
     def draw_colored_disk(
-        self, 
-        map, 
-        pixel_radius, 
-        data=None, 
-        resolution=4096, 
-        ticker=None, 
-        alpha=1
+        self, map, pixel_radius, data=None, resolution=4096, ticker=None, alpha=1
     ):
         ax = self.__axis__(ticker)
         data = data if data is not None else map.data
@@ -115,36 +116,27 @@ class ImagePalette(object):
         self.__circle__(ax, pixel_radius, resolution)
         return
 
-    def ovearlay_localized_regions(
-        self,
-        regions,
-        prob_lower_lim=0.8
-    ):
-        ax = self.__axis__(ticker=self.ticker-1)
+    def ovearlay_localized_regions(self, regions, prob_lower_lim=0.8):
+        ax = self.__axis__(ticker=self.ticker - 1)
         keys = list(regions.__dict__.keys())
         limits, probs = (
             np.array([regions.__dict__[key].lim for key in keys]),
-            np.array([regions.__dict__[key].prob for key in keys])
+            np.array([regions.__dict__[key].prob for key in keys]),
         )
-        n_probs = (probs-probs.min())/(probs.max()-probs.min())
+        n_probs = (probs - probs.min()) / (probs.max() - probs.min())
         logger.info(f"Total regions plotted with seperators {len(keys)}")
-        norm = matplotlib.colors.Normalize(
-            vmin=prob_lower_lim, vmax=1.
-        )
+        norm = matplotlib.colors.Normalize(vmin=prob_lower_lim, vmax=1.0)
         cmap = matplotlib.cm.get_cmap("Spectral_r")
         stacked = np.max(
             [
-                regions.__dict__[key].map * p 
-                for key, p in zip(keys, n_probs) 
+                regions.__dict__[key].map * p
+                for key, p in zip(keys, n_probs)
                 if p >= prob_lower_lim
             ],
-            axis = 0,
+            axis=0,
         )
-        stacked[stacked==0.] = np.nan
-        im = ax.imshow(
-            stacked, cmap=cmap, 
-            norm=norm, origin="lower"
-        )
+        stacked[stacked == 0.0] = np.nan
+        im = ax.imshow(stacked, cmap=cmap, norm=norm, origin="lower")
         self._add_colorbar(ax, im, label="Probability")
         return
 
@@ -168,31 +160,34 @@ class ImagePalette(object):
     def plot_binary_localized_maps(
         self,
         regions,
-        pixel_radius, 
-        resolution=4096, 
+        pixel_radius,
+        resolution=4096,
     ):
         keys = list(regions.__dict__.keys())
         limits, probs = (
             np.array([regions.__dict__[key].lim for key in keys]),
-            np.array([regions.__dict__[key].prob for key in keys])
+            np.array([regions.__dict__[key].prob for key in keys]),
         )
-        n_probs = (probs-probs.min())/(probs.max()-probs.min())
+        n_probs = (probs - probs.min()) / (probs.max() - probs.min())
         fig_num = len(self.axes)
         total_num_regions = len(keys)
-        logger.info(f"Total regions plotted with seperators {len(keys)}, but will be plotted {fig_num}")
-        keys = keys[::int(total_num_regions/fig_num)][:len(self.axes)]
+        logger.info(
+            f"Total regions plotted with seperators {len(keys)}, but will be plotted {fig_num}"
+        )
+        keys = keys[:: int(total_num_regions / fig_num)][: len(self.axes)]
         for key, p in zip(keys, n_probs):
             ax = self.__axis__()
             map = regions.__dict__[key].map
-            ax.imshow(
-                map, cmap="gray", 
-                vmax=1, vmin=0, 
-                origin="lower"
-            )
-            txt = r"$\tau=$%s"%key + "\n" + r"$\mathcal{p}=%.3f$"%p
+            ax.imshow(map, cmap="gray", vmax=1, vmin=0, origin="lower")
+            txt = r"$\tau=$%s" % key + "\n" + r"$\mathcal{p}=%.3f$" % p
             ax.text(
-                0.05, 0.9, txt, ha="left", va="center", 
-                transform=ax.transAxes, fontdict={"color":"w"}
+                0.05,
+                0.9,
+                txt,
+                ha="left",
+                va="center",
+                transform=ax.transAxes,
+                fontdict={"color": "w"},
             )
             self.__circle__(ax, pixel_radius, resolution)
         return
@@ -201,20 +196,25 @@ class ImagePalette(object):
         ax = self.__axis__(ticker)
         for a in annotations:
             ax.text(
-                a.xloc, a.yloc, a.txt, ha=a.ha, va=a.va, 
-                transform=ax.transAxes, fontdict=a.fontdict,
+                a.xloc,
+                a.yloc,
+                a.txt,
+                ha=a.ha,
+                va=a.va,
+                transform=ax.transAxes,
+                fontdict=a.fontdict,
                 rotation=a.rotation,
             )
         return
 
+
 class ChipsPlotter(object):
-    """
-    """
+    """ """
 
     def __init__(
-        self, 
+        self,
         disk,
-        figsize=(6,6),
+        figsize=(6, 6),
         dpi=240,
         nrows=2,
         ncols=2,
@@ -239,10 +239,7 @@ class ChipsPlotter(object):
         dpi = dpi if dpi else self.dpi
         nrows = nrows if nrows else self.nrows
         ncols = ncols if ncols else self.ncols
-        ip = ImagePalette(
-            (9,3), dpi, 
-            1, 3
-        )
+        ip = ImagePalette((9, 3), dpi, 1, 3)
         ip.draw_colored_disk(
             map=self.disk.normalized,
             pixel_radius=self.disk.pixel_radius,
@@ -260,24 +257,27 @@ class ChipsPlotter(object):
             resolution=self.disk.resolution,
         )
         ip.ovearlay_localized_regions(
-            self.disk.solar_ch_regions, 
-            prob_lower_lim=prob_lower_lim
+            self.disk.solar_ch_regions, prob_lower_lim=prob_lower_lim
         )
         annotations = []
         annotations.append(
             Annotation(
-                self.disk.date.strftime("%Y-%m-%d %H:%M"), 
-                0.05, 1.05, "left", "center"
+                self.disk.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
             )
         )
         annotations.append(
             Annotation(
-                r"$\lambda=%d\AA$"%self.disk.wavelength, 
-                -0.05, 0.99, "center", "top", rotation=90
+                r"$\lambda=%d\AA$" % self.disk.wavelength,
+                -0.05,
+                0.99,
+                "center",
+                "top",
+                rotation=90,
             )
         )
         ip.annotate(annotations)
-        if fname: ip.save(fname)
+        if fname:
+            ip.save(fname)
         ip.close()
         return
 
@@ -293,10 +293,7 @@ class ChipsPlotter(object):
         dpi = dpi if dpi else self.dpi
         nrows = nrows if nrows else self.nrows
         ncols = ncols if ncols else self.ncols
-        ip = ImagePalette(
-            figsize, dpi,
-            nrows, ncols
-        )
+        ip = ImagePalette(figsize, dpi, nrows, ncols)
         ip.plot_binary_localized_maps(
             self.disk.solar_ch_regions,
             self.disk.pixel_radius,
@@ -305,17 +302,21 @@ class ChipsPlotter(object):
         annotations = []
         annotations.append(
             Annotation(
-                self.disk.date.strftime("%Y-%m-%d %H:%M"), 
-                0.05, 1.05, "left", "center"
+                self.disk.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
             )
         )
         annotations.append(
             Annotation(
-                r"$\lambda=%d\AA$"%self.disk.wavelength, 
-                -0.05, 0.99, "center", "top", rotation=90
+                r"$\lambda=%d\AA$" % self.disk.wavelength,
+                -0.05,
+                0.99,
+                "center",
+                "top",
+                rotation=90,
             )
         )
         ip.annotate(annotations)
-        if fname: ip.save(fname)
+        if fname:
+            ip.save(fname)
         ip.close()
         return
