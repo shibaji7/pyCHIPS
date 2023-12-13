@@ -30,6 +30,11 @@ from sunpy.net import Fido, attrs
 class SolarDisk(object):
     """A simple object subclass that holds all the informations on solar disk.
 
+    Attributes:
+        date (datetime.datetime):
+        wavelength (int):
+        
+
     Methods:
         fetch
         set_value
