@@ -31,9 +31,9 @@ class SolarDisk(object):
     """A simple object subclass that holds all the informations on solar disk.
 
     Methods:
-            fetch
-            set_value
-            get_value
+        fetch
+        set_value
+        get_value
         normalization
         search_local
         fetch_solar_parameters

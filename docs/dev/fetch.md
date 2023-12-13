@@ -23,4 +23,4 @@ and conditions of MIT General Public License.
         - fetch_solar_parameters
         - plot_disk_images
       show_root_heading: true
-      show_source: true
+      show_source: false
