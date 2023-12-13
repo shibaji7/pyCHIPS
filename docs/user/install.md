@@ -19,7 +19,7 @@ and conditions of MIT General Public License.
 
 
 !!! Important 
-    It is recommended to install pyCHIPS `pip`.<!-- however, please cite via the [DOI for the release](https://www.frontiersin.org/articles/10.3389/fphy.2022.1022475/full) -->
+    It is recommended to install pyCHIPS `pip` or `pip3`.
 
 
 ## Prerequisites

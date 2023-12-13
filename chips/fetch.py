@@ -22,6 +22,8 @@ from sunpy.net import Fido, attrs
 import datetime as dt
 import glob
 from pathlib import Path
+import os
+import requests
 
 
 class SolarDisk(object):
@@ -120,6 +122,42 @@ class SolarDisk(object):
         self.pixel_radius = int(self.rsun_obs/self.rscale)
         return
 
+    def plot_disk_images(
+        self, types=["raw","normalized"],
+        figsize=(6,6), dpi=240, nrows=1, ncols=2,
+        fname=None,
+    ):
+        plotting_types = [t for t in types if hasattr(self, t)]
+        from plots import ImagePalette, Annotation
+        im = ImagePalette(
+            figsize=figsize,
+            dpi=dpi,
+            nrows=nrows,
+            ncols=ncols,
+        )
+        for t in plotting_types:
+            im.draw_colored_disk(
+                self.get_value(t), self.pixel_radius,
+                resolution=self.resolution
+            )
+        annotations = []
+        annotations.append(
+            Annotation(
+                self.disk.date.strftime("%Y-%m-%d %H:%M"), 
+                0.05, 1.05, "left", "center"
+            )
+        )
+        annotations.append(
+            Annotation(
+                r"$\lambda=%d\AA$"%self.disk.wavelength, 
+                -0.05, 0.99, "center", "top", rotation=90
+            )
+        )
+        ip.annotate(annotations)
+        if fname: ip.save(fname)
+        ip.close()
+        return
+
 
 class RegisterAIA(object):
     """
@@ -148,4 +186,76 @@ class RegisterAIA(object):
                     apply_psf=self.apply_psf,
                     norm=self.norm
                 )
+        return
+
+class SynopticMap(object):
+    """
+    """
+
+    def __init__(
+        self, 
+        date, 
+        wavelength=193,
+        location="sunpy/data/synoptic/", 
+        base_url="http://jsoc.stanford.edu/data/aia/synoptic/",
+        uri_regex="{:04d}/{:02d}/{:02d}/H{:02d}00/",
+        file_name_regex="AIA{:04d}{:02d}{:02d}_{:02d}00_0{:03d}.fits",
+        norm=True,
+        apply_psf=False,
+    ):
+        self.date = date
+        self.wavelength = wavelength
+        self.location = location
+        self.base_url = base_url
+        self.uri_regex = uri_regex
+        self.file_name_regex = file_name_regex
+        self.norm = norm
+        self.apply_psf = apply_psf
+        # Create all the urls and file names
+        self.fname = file_name_regex.format(
+            date.year, date.month, date.day, 
+            date.hour, wavelength
+        )
+        self.remote_file_url = (
+            base_url + uri_regex.format(
+                date.year, date.month, date.day, date.hour
+            ) + self.fname
+        )
+        logger.info(f"Remote file {self.remote_file_url}")
+        self.local_file_dir = str(
+            Path.home() / location
+        )
+        os.makedirs(self.local_file_dir, exist_ok=True)
+        self.local_file = self.local_file_dir + "/" + self.fname
+        logger.info(f"Local file {self.local_file}")
+        self.fetch()
+        if self.norm: self.normalization()
+        return
+
+    def fetch(self):
+        if not os.path.exists(self.local_file):
+            req = requests.get(self.remote_file_url)
+            logger.info(f"Fetching remore file status code:{req.status_code}")
+            if req.status_code == 200:
+                with open(self.local_file, "wb") as f:
+                    f.write(req.content)
+        self.raw = sunpy.map.Map(self.local_file)
+        return
+
+    def set_value(self, key: str, value: object) -> None:
+        setattr(self, key, value)
+        return
+    
+    def get_value(self, key: str) -> Any:
+        return getattr(self, key)
+
+    def normalization(self) -> None:
+        key = "psf" if self.apply_psf else "raw"
+        logger.info(f"Normalize Syn-map using L({self.wavelength}) on {self.date}")
+        self.normalized = normalize_exposure(self.raw)
+        self.fetch_solar_parameters()
+        return
+
+    def fetch_solar_parameters(self):
+        print(self.normalized.data.shape)
         return
