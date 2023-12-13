@@ -29,3 +29,7 @@ If you have any questions or concerns please submit an **Issue** on the [pyCHIPS
     - [Objectives](tutorial/objectives.md)
     - [Open Flux Problem](tutorial/openflux.md)
     - [Example Event](tutorial/example.md)
+  - Code Documentation
+    - [Fetch Maps](dev/fetch.md)
+    - [CHIPS Tools](dev/chips.md)
+    - [Plotting Tools](dev/plots.md)
