@@ -59,12 +59,12 @@ class SolarDisk(object):
         if self.norm: self.normalization()
         return
     
-    def set_value(self, key: str, value: object) -> None:
-        """Methods to convert a set an attribute
+    def set_value(self, key: str, value: Any) -> None:
+        """Methods to set an attribute inside `chips.fetch.SolarDisk` object
         
         Arguments:
-            key: `str` key/name of the attribute
-            value: `object` to set as attribute
+            key: Key/name of the attribute
+            value: Value to set as attribute
         
         Returns:
             Method returns None
@@ -73,6 +73,14 @@ class SolarDisk(object):
         return
     
     def get_value(self, key: str) -> Any:
+        """Methods to get an attribute from `chips.fetch.SolarDisk` object
+        
+        Arguments:
+            key: Key/name of the attribute
+        
+        Returns:
+            Method returns a `object` if available
+        """
         return getattr(self, key)
 
     def search_local(self) -> str:
