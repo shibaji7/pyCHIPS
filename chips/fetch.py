@@ -27,7 +27,7 @@ import requests
 
 
 class SolarDisk(object):
-    """A simple object subclass that holds all the informations on solar disk and.
+    """A simple object subclass that holds all the informations on solar disk.
     
     Methods:
         fetch
@@ -47,6 +47,8 @@ class SolarDisk(object):
         apply_psf: bool=False,
         norm: bool=True,
     ) -> None:
+        """Initialize the parameters provided by kwargs.        
+        """
         self.date = date
         self.wavelength = wavelength
         self.resolution = resolution if resolution else 4096
@@ -58,6 +60,15 @@ class SolarDisk(object):
         return
     
     def set_value(self, key: str, value: object) -> None:
+        """Methods to convert a set an attribute
+        
+        Arguments:
+            key: `str` key/name of the attribute
+            value: `object` to set as attribute
+        
+        Returns:
+            Method returns None
+        """
         setattr(self, key, value)
         return
     
