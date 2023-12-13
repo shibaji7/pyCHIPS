@@ -30,9 +30,9 @@ class SolarDisk(object):
     """A simple object subclass that holds all the informations on solar disk.
     
     Methods:
-        fetch
-        set_value
-        get_value
+            fetch
+            set_value
+            get_value
         normalization
         search_local
         fetch_solar_parameters
@@ -60,7 +60,7 @@ class SolarDisk(object):
         return
     
     def set_value(self, key: str, value: Any) -> None:
-        """Methods to set an attribute inside `chips.fetch.SolarDisk` object
+        """Methods to set an attribute inside `chips.fetch.SolarDisk` object.
         
         Arguments:
             key: Key/name of the attribute
@@ -73,7 +73,7 @@ class SolarDisk(object):
         return
     
     def get_value(self, key: str) -> Any:
-        """Methods to get an attribute from `chips.fetch.SolarDisk` object
+        """Methods to get an attribute from `chips.fetch.SolarDisk` object.
         
         Arguments:
             key: Key/name of the attribute
@@ -84,6 +84,13 @@ class SolarDisk(object):
         return getattr(self, key)
 
     def search_local(self) -> str:
+        """Methods to search AIA disk '.fits' files in local system
+        
+        Arguments:
+        
+        Returns:
+            Method returns a file name if file avilable.
+        """
         logger.info("Searching local files ....")
         date_str = self.date.strftime("%Y_%m_%d")
         local_files = glob.glob(
@@ -95,6 +102,13 @@ class SolarDisk(object):
         return local_file
 
     def fetch(self) -> None:
+        """Methods to fetch AIA disk '.fits' files from remote 'JSOC' or local storage.
+        
+        Arguments:
+        
+        Returns:
+            Method returns None
+        """
         logger.info(f"Fetching({self.wavelength}), R({self.resolution}) on {self.date}")
         local_file = self.search_local()
         if local_file:
@@ -123,6 +137,13 @@ class SolarDisk(object):
         return
 
     def normalization(self) -> None:
+        """Methods to search AIA files in local system
+        
+        Arguments:
+        
+        Returns:
+            Method returns a file name if file avilable
+        """
         key = "psf" if self.apply_psf else "raw"
         logger.info(f"Normalize map using L({self.wavelength}), R({self.resolution}) on {self.date}")
         updated_point = update_pointing(
