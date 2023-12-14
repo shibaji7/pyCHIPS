@@ -34,20 +34,15 @@ class SolarDisk(object):
         date (datetime.datetime): Datetime of the solar disk '.fits' file.
         wavelength (int): Wave length of the disk image [171/193/211].
         resolution (int): Resolution of the image to work on [4096].
-        apply_psf (bool): If `true` conduct 
-        norm (bool):
-        desciption (str):
-        raw (sunpy.map.Map):
-        psf (sunpy.map.Map):
-        normalized (sunpy.map.Map):
-        psf (sunpy.map.Map):
-        rscale (float):
-        r_sun (float):
-        rsun_obs (float):
-        pixel_radius (int):
+        apply_psf (bool): If `true`, conduct deconvololution with a point spread function.
+        norm (bool): If `true`, conduct image registrtation and normalization.
+        desciption (str): Holds description of the '.fits' file.
+        raw (sunpy.map.Map): Holds raw solar disk Map.
+        psf (sunpy.map.Map): Holds deconvolved solar disk Map.
+        normalized (sunpy.map.Map): Holds normalized solar disk Map (using raw or psf).
+        pixel_radius (int): Holds solar disk radii in pixel.
 
-
-    Methods:
+    Functions:
         fetch:
         set_value:
         get_value:
