@@ -89,3 +89,4 @@ webencodings==0.5.1
 Werkzeug==2.2.3
 zipp==3.13.0
 mkdocs-glightbox==0.3.4
+mkdocs-bibtex==2.11.0
