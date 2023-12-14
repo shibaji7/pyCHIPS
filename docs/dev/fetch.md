@@ -24,3 +24,10 @@ and conditions of MIT General Public License.
         - plot_disk_images
       show_root_heading: true
       show_source: false
+
+
+::: chips.fetch.RegisterAIA
+    handler: python
+    options:
+      show_root_heading: true
+      show_source: false

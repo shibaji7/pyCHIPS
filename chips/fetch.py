@@ -236,12 +236,12 @@ class SolarDisk(object):
 
 
 class RegisterAIA(object):
-    """An object subclass that holds all the informations on solar disk.
+    """An object superclass that holds all the information on `chips.fetch.SolarDisk`.
 
     Attributes:
         date (datetime.datetime): Datetime of the solar disk '.fits' file.
-        wavelengths (List[int]): Wave length of the disk image [171/193/211].
-        resolution (List[int]): Resolution of the image to work on [4096].
+        wavelengths (List[int]): List of wavelength of the disk image [171/193/211] to be run.
+        resolution (List[int]): List of resolutions of the image to work on [4096].
         apply_psf (bool): If `true`, conduct deconvololution with a point spread function.
         norm (bool): If `true`, conduct image registrtation and normalization.
     """
