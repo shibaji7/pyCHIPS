@@ -28,7 +28,7 @@ from sunpy.net import Fido, attrs
 
 
 class SolarDisk(object):
-    """A simple object subclass that holds all the informations on solar disk.
+    """An object subclass that holds all the information on solar disk.
 
     Attributes:
         date (datetime.datetime): Datetime of the solar disk '.fits' file.
@@ -41,15 +41,6 @@ class SolarDisk(object):
         psf (sunpy.map.Map): Holds deconvolved solar disk Map.
         normalized (sunpy.map.Map): Holds normalized solar disk Map (using raw or psf).
         pixel_radius (int): Holds solar disk radii in pixel.
-
-    Functions:
-        fetch:
-        set_value:
-        get_value:
-        normalization:
-        search_local:
-        fetch_solar_parameters:
-        plot_disk_images:
     """
 
     def __init__(
@@ -189,7 +180,7 @@ class SolarDisk(object):
     def plot_disk_images(
         self,
         types: List[str]=["raw", "normalized"],
-        figsize: Tuple[int]=(6, 6),
+        figsize: Tuple[int]=(6, 3),
         dpi: int=240,
         nrows: int=1,
         ncols: int=2,
@@ -198,12 +189,12 @@ class SolarDisk(object):
         """Plotting method to generate diagonestics plots
 
         Arguments:
-            types:
-            figsize:
-            dpi:
-            nrows:
-            ncols:
-            fname:
+            types: Name of the map attributes to plot ['raw','normalized','psf'].
+            figsize: Size of the figure.
+            dpi: Figure DPI.
+            nrows: Number of rows in the figure.
+            ncols: Number of columns in the figure.
+            fname: File name of the figure (expected file format: png, bmp, pdf, jpg).
 
         Returns:
             Method returns None
@@ -245,8 +236,14 @@ class SolarDisk(object):
 
 
 class RegisterAIA(object):
-    """
-    Regsitered all AIA dataset
+    """An object subclass that holds all the informations on solar disk.
+
+    Attributes:
+        date (datetime.datetime): Datetime of the solar disk '.fits' file.
+        wavelengths (List[int]): Wave length of the disk image [171/193/211].
+        resolution (List[int]): Resolution of the image to work on [4096].
+        apply_psf (bool): If `true`, conduct deconvololution with a point spread function.
+        norm (bool): If `true`, conduct image registrtation and normalization.
     """
 
     def __init__(
