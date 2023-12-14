@@ -27,6 +27,7 @@ If you have any questions or concerns please submit an **Issue** on the [pyCHIPS
   - [Citing](user/citing.md)
   - Tutorials
     - [Objectives](tutorial/objectives.md)
+    - [How it Works?](tutorial/workings.md)
     - [Open Flux Problem](tutorial/openflux.md)
     - [Example Event](tutorial/example.md)
   - Code Documentation

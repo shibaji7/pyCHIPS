@@ -15,7 +15,7 @@ import datetime as dt
 import glob
 import os
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Tuple
 
 import aiapy.psf
 import astropy.units as u
@@ -33,7 +33,19 @@ class SolarDisk(object):
     Attributes:
         date (datetime.datetime):
         wavelength (int):
-        
+        resolution (int):
+        apply_psf (bool):
+        norm (bool):
+        desciption (str):
+        raw (sunpy.map.Map):
+        psf (sunpy.map.Map):
+        normalized (sunpy.map.Map):
+        psf (sunpy.map.Map):
+        rscale (float):
+        r_sun (float):
+        rsun_obs (float):
+        pixel_radius (int):
+
 
     Methods:
         fetch
@@ -157,12 +169,19 @@ class SolarDisk(object):
             f"Normalize map using L({self.wavelength}), R({self.resolution}) on {self.date}"
         )
         updated_point = update_pointing(getattr(self, key))
-        self.registred = register(updated_point)
-        self.normalized = normalize_exposure(self.registred)
+        registred = register(updated_point)
+        self.normalized = normalize_exposure(registred)
         self.fetch_solar_parameters()
         return
 
     def fetch_solar_parameters(self) -> None:
+        """Methods to fetch solar disk parameters. Sets solar radii in pixel.
+
+        Arguments:
+
+        Returns:
+            Method returns None
+        """
         logger.info("Extract solar basic properties.")
         self.rscale, self.r_sun, self.rsun_obs = (
             self.normalized._meta["cdelt2"],
@@ -174,13 +193,26 @@ class SolarDisk(object):
 
     def plot_disk_images(
         self,
-        types=["raw", "normalized"],
-        figsize=(6, 6),
-        dpi=240,
-        nrows=1,
-        ncols=2,
-        fname=None,
-    ):
+        types: List[str]=["raw", "normalized"],
+        figsize: Tuple[int]=(6, 6),
+        dpi: int=240,
+        nrows: int=1,
+        ncols: int=2,
+        fname: str=None,
+    ) -> None:
+        """Plotting method to generate diagonestics plots
+
+        Arguments:
+            types:
+            figsize:
+            dpi:
+            nrows:
+            ncols:
+            fname:
+
+        Returns:
+            Method returns None
+        """
         plotting_types = [t for t in types if hasattr(self, t)]
         from plots import Annotation, ImagePalette
 
