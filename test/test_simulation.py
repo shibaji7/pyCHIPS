@@ -23,7 +23,7 @@ from chips import Chips
 
 class TestCHIPS(unittest.TestCase):
     def test_fetch_193_solar_disk_(self):
-        aia = RegisterAIA(dt.datetime(2018, 5, 18, 12), [193], [4096])
+        aia = RegisterAIA(dt.datetime(2018, 5, 30, 12), [193], [4096])
         chips = Chips(aia)
         chips.run_CHIPS()
         return

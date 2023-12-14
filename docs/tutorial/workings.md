@@ -49,5 +49,9 @@ Beta(x_\tau|\alpha,\beta)&=&\frac{x_\tau^{\alpha-1}(1-x_\tau)^{\beta-1}}{B(\alph
 \mathcal{F}(I^S>I_{th},x_{\tau_{th}})&=&\int_{x_{\tau_{th}}}^1 Beta(x_\tau|\alpha,\beta)dx_\tau
 \end{eqnarray}
 
+<figure markdown>
+![Figure 04](../figures/Figure04.png)
+<figcaption>Figure 04: Final CHIPS output of 19.3 nm 4k '.fits' image at different stages.</figcaption>
+</figure>
 
 \bibliography
