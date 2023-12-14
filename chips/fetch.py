@@ -31,10 +31,10 @@ class SolarDisk(object):
     """A simple object subclass that holds all the informations on solar disk.
 
     Attributes:
-        date (datetime.datetime):
-        wavelength (int):
-        resolution (int):
-        apply_psf (bool):
+        date (datetime.datetime): Datetime of the solar disk '.fits' file.
+        wavelength (int): Wave length of the disk image [171/193/211].
+        resolution (int): Resolution of the image to work on [4096].
+        apply_psf (bool): If `true` conduct 
         norm (bool):
         desciption (str):
         raw (sunpy.map.Map):
@@ -48,13 +48,13 @@ class SolarDisk(object):
 
 
     Methods:
-        fetch
-        set_value
-        get_value
-        normalization
-        search_local
-        fetch_solar_parameters
-        plot_disk_images
+        fetch:
+        set_value:
+        get_value:
+        normalization:
+        search_local:
+        fetch_solar_parameters:
+        plot_disk_images:
     """
 
     def __init__(
