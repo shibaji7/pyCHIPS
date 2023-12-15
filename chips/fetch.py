@@ -179,12 +179,12 @@ class SolarDisk(object):
 
     def plot_disk_images(
         self,
-        types: List[str]=["raw", "normalized"],
-        figsize: Tuple[int]=(6, 3),
-        dpi: int=240,
-        nrows: int=1,
-        ncols: int=2,
-        fname: str=None,
+        types: List[str] = ["raw", "normalized"],
+        figsize: Tuple[int] = (6, 3),
+        dpi: int = 240,
+        nrows: int = 1,
+        ncols: int = 2,
+        fname: str = None,
     ) -> None:
         """Plotting method to generate diagonestics plots
 

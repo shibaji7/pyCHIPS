@@ -18,17 +18,28 @@ from loguru import logger
 
 
 class Annotation(object):
-    """ """
+    """An object class that holds annotation details that put on a disk image. The attibutes
+    of this class is similar to `maplotlib.pyplot.ax.text()`.
+
+    Attributes:
+        txt (str): Text to be annotated.
+        xloc (float): X-location of the text.
+        yloc (float): Y-location of the text.
+        ha (str): Horizontal Alignment of the text.
+        va (str): Vertical Alignment of the text.
+        fontdict (dict): Font dictionary containg text styles.
+        rotation (float): Text rotation in degress (0-360).
+    """
 
     def __init__(
         self,
-        txt,
-        xloc,
-        yloc,
-        ha,
-        va,
-        fontdict={"color": "k", "size": 10},
-        rotation=0,
+        txt: str,
+        xloc: float,
+        yloc: float,
+        ha: str,
+        va: str,
+        fontdict: dict = {"color": "k", "size": 10},
+        rotation: float = 0,
     ):
         self.txt = txt
         self.xloc = xloc
@@ -41,6 +52,17 @@ class Annotation(object):
 
 
 class ImagePalette(object):
+    """An object class that holds annotation details that put on a disk image.
+
+    Attributes:
+        txt (str):
+        xloc (float):
+        ha (str):
+        va (str):
+        fontdict (dict):
+        rotation (float):
+    """
+
     def __init__(
         self,
         figsize=(6, 6),
