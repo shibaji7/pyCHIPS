@@ -68,17 +68,30 @@ class Chips(object):
         return
 
     def get_base_folder(self) -> None:
+        """Method to find local base folder to store figures and outputs.
+        
+        Attributes:
+        
+        Returns:
+            Method returns None.
+        """
         self.folder = self.base_folder + self.aia.date.strftime("%Y.%m.%d")
         os.makedirs(self.folder, exist_ok=True)
         return
 
     def run_CHIPS(
         self,
-        wavelength=None,
-        resolution=None,
+        wavelength: int=None,
+        resolution: int=None,
     ) -> None:
-        """
-        Process CHIPS code
+        """This method selects the `chips.fetch.SolarDisk`(s) objects and runs the CHIPS algorithm sequentially.
+
+        Attributes:
+            wavelength (int): Wave length of the disk image [171/193/211].
+            resolution (int): Resolution of the image to work on [4096].
+
+        Returns:
+            Method returns None.
         """
         self.simulaion_outputs = dict()
         if (wavelength is not None) and (resolution is not None):
@@ -113,8 +126,16 @@ class Chips(object):
 
     def process_CHIPS(
         self,
-        disk: fetch.SolarDisk,
+        disk,
     ) -> None:
+        """This method runs the CHIPS algorithm for a selected `chips.fetch.SolarDisk` object.
+
+        Attributes:
+            disk (chips.fetch.SolarDisk): Solar disk to run CHIPS algorithm.
+
+        Returns:
+            Method returns None.
+        """
         self.extract_solar_masks(disk)
         self.run_filters(disk)
         self.extract_histogram(disk)
@@ -125,6 +146,14 @@ class Chips(object):
         return
 
     def extract_solar_masks(self, disk) -> None:
+        """This method extract the solar disk mask, using method described in this [Section](../../tutorial/workings/).
+
+        Attributes:
+            disk (chips.fetch.SolarDisk): Solar disk to run CHIPS algorithm.
+
+        Returns:
+            Method returns None.
+        """
         logger.info(f"Create solar mask for {disk.wavelength}/{disk.resolution}")
         if not hasattr(disk, "solar_mask"):
             n_mask = np.zeros_like(disk.raw.data) * np.nan
@@ -145,6 +174,14 @@ class Chips(object):
         return
 
     def run_filters(self, disk) -> None:
+        """This method runs the Gaussian filter on solar disk, using method described in this [Section](../../tutorial/workings/).
+
+        Attributes:
+            disk (chips.fetch.SolarDisk): Solar disk to run CHIPS algorithm.
+
+        Returns:
+            Method returns None.
+        """
         logger.info(f"Running solar filters for {disk.wavelength}/{disk.resolution}")
         if not hasattr(disk, "solar_filter"):
             solar_disk = disk.normalized.data * disk.solar_mask.i_mask
@@ -158,6 +195,14 @@ class Chips(object):
         return
 
     def extract_histogram(self, disk) -> None:
+        """This method extract Otsu's threshold, using method described in this [Section](../../tutorial/workings/).
+
+        Attributes:
+            disk (chips.fetch.SolarDisk): Solar disk to run CHIPS algorithm.
+
+        Returns:
+            Method returns None.
+        """
         logger.info(f"Extract solar histogram {disk.wavelength}/{disk.resolution}")
         if not hasattr(disk, "histogram"):
             h_data = disk.solar_filter.filt_disk * disk.solar_mask.n_mask
