@@ -27,7 +27,7 @@ class Chips(object):
     r"""An object class that runs the CHIPS algorithm step-by-step with a set of input parameters.
 
     Attributes:
-        aia (fetch.RegisterAIA): AIA method that holds all the information on `List[fetch.SolarDisk]`.
+        aia (chips.fetch.RegisterAIA): AIA method that holds all the information on `List[fetch.SolarDisk]`.
         base_folder (str): Base folder to store the processed figures and datasets.
         medfilt_kernel (int): Median filtering Gaussian kernel size (odd number).
         h_bins (int): Number of bins in histogram while running Otsu's method.
@@ -41,7 +41,7 @@ class Chips(object):
 
     def __init__(
         self,
-        aia: fetch.RegisterAIA,
+        aia,
         base_folder: str = "tmp/chips_dataset/",
         medfilt_kernel: int = 3,
         h_bins: int = 5000,
@@ -284,9 +284,19 @@ class Chips(object):
                 disk.set_value("solar_ch_regions", Namespace(**dtmp_map))
         return
 
-    def calculate_prob(self, data, thresholds) -> float:
-        """
-        Estimate probability for each map
+    def calculate_prob(
+        self, 
+        data: np.array, 
+        threshold: float
+    ) -> float:
+        r"""Estimate probability for each region.
+
+        Attributes:
+            data (np.array): Numpy 1D array holding '.fits' level intensity (I) dataset. 
+            threshold (float): Intensity thresold ($I_{th}$).
+
+        Returns:
+            p (float): Probability [$\theta$] of each region estimated using Beta function.
         """
         data = data[~np.isnan(data)]
         data = data[data <= thresholds[0]]
@@ -317,6 +327,9 @@ class Chips(object):
             nrows (int): Number of axis rows in a figure palete.
             ncols (int): Number of axis colums in a figure palete.
             prob_lower_lim (float): Minimum limit of the color bar.
+        
+        Returns:
+            Method returns None.
         """
         cp = ChipsPlotter(
             disk,
