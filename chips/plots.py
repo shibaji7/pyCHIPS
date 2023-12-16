@@ -15,8 +15,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from loguru import logger
+import sunpy.map
 
-from typing import Tuple
+from typing import Tuple, List
 
 
 class Annotation(object):
@@ -54,7 +55,7 @@ class Annotation(object):
 
 
 class ImagePalette(object):
-    """An object class that holds annotation details that put on a disk image.
+    """An object class that holds the figures and axis to draw.
 
     Attributes:
         figsize (Tuple): Figure size (width, height)
@@ -108,10 +109,10 @@ class ImagePalette(object):
         return
 
     def save(self, fname: str) -> None:
-        """Methods to save the image into local system (expected file formats png, bmp, jpg, pdf, etc).
+        """Methods to save the image into local system.
 
         Arguments:
-            fname (str): File name to save the image.
+            fname (str): File name to save the image (expected file formats png, bmp, jpg, pdf, etc).
 
         Returns:
             Method returns None.
@@ -138,7 +139,7 @@ class ImagePalette(object):
         return ax
 
     def __circle__(self, ax: matplotlib.axes.Axes, pixel_radius: int, resolution: int) -> None:
-        """Adding/fetching axis in the figure Paletes.
+        """Adding/fetching solar disk circle in the disk maps.
 
         Arguments:
             ax (matplotlib.axes.Axes): Figure axis.
@@ -163,12 +164,14 @@ class ImagePalette(object):
         resolution: int=4096, 
         ticker: int=None, alpha: float=1
     ) -> None:
-        """Adding/fetching axis in the figure Paletes.
+        """Plotting colored solar disk images in the axis.
 
         Arguments:
-            ax (matplotlib.axes.Axes): Figure axis.
-            pixel_radius: Radious of the solar disk.
+            map (sunpy.map.Map): Figure axis.
+            pixel_radius (int): Radious of the solar disk.
+            data (np.array): 2D numpy array of dataset to plot (if not given `map.data` is plotted).
             resolution: Image resolution (typically 4k).
+            ticker (int): Axis ticker.
 
         Returns:
             Method returns None.
@@ -187,7 +190,24 @@ class ImagePalette(object):
         self.__circle__(ax, pixel_radius, resolution)
         return
 
-    def ovearlay_localized_regions(self, regions, prob_lower_lim=0.8):
+    def ovearlay_localized_regions(
+        self, 
+        regions: List[dict], 
+        prob_lower_lim: float=0, 
+        add_color_bar: bool=True,
+        cmap: str="Spectral_r", 
+    ) -> None:
+        """Overlay the identified CH regions on top of the 
+
+        Arguments:
+            regions (List[dict]): List of dictonary holding all the information of identified CH regions.
+            prob_lower_lim (float): Minimum limit of the color bar.
+            add_color_bar (bool): If `true` plot the probability colorbar on right.
+            cmap (str): Color map in string - refer `matplotlib` for details.
+
+        Returns:
+            Method returns None.
+        """
         ax = self.__axis__(ticker=self.ticker - 1)
         keys = list(regions.__dict__.keys())
         limits, probs = (
@@ -197,7 +217,7 @@ class ImagePalette(object):
         n_probs = (probs - probs.min()) / (probs.max() - probs.min())
         logger.info(f"Total regions plotted with seperators {len(keys)}")
         norm = matplotlib.colors.Normalize(vmin=prob_lower_lim, vmax=1.0)
-        cmap = matplotlib.cm.get_cmap("Spectral_r")
+        cmap = matplotlib.cm.get_cmap(cmap)
         stacked = np.max(
             [
                 regions.__dict__[key].map * p
@@ -208,19 +228,28 @@ class ImagePalette(object):
         )
         stacked[stacked == 0.0] = np.nan
         im = ax.imshow(stacked, cmap=cmap, norm=norm, origin="lower")
-        self._add_colorbar(ax, im, label="Probability")
+        if add_color_bar: self.__add_colorbar__(ax, im, label="Probability")
         return
 
-    def _add_colorbar(
+    def __add_colorbar__(
         self,
-        ax,
-        im,
-        label="",
-        xOff=0,
-        yOff=0,
-    ):
-        """
-        Add a colorbar to the right of an axis.
+        ax: matplotlib.axes.Axes,
+        im: matplotlib.image.AxesImage,
+        label: str="",
+        xOff: float=0,
+        yOff: float=0,
+    ) -> None:
+        """Add a colorbar to the right of an axis.
+
+        Arguments:
+            ax (matplotlib.axes.Axes): Image axis.
+            im (matplotlib.image.AxesImage): Image of the axis.
+            label (str): Colorbar axis label.
+            xOff (float): X-axis offset of the colorbar.
+            yOff (float): Y-axis offset of the colorbar.
+
+        Returns:
+            Method returns None.
         """
         cpos = [1.04 + xOff, 0.1 + yOff, 0.025, 0.8]
         cax = ax.inset_axes(cpos, transform=ax.transAxes)
@@ -230,10 +259,20 @@ class ImagePalette(object):
 
     def plot_binary_localized_maps(
         self,
-        regions,
-        pixel_radius,
-        resolution=4096,
+        regions: List[dict],
+        pixel_radius: int,
+        resolution: int=4096,
     ):
+        """Method to add binary CH region maps.
+
+        Arguments:
+            regions (List[dict]): List of dictonary holding all the information of identified CH regions.
+            pixel_radius (int): Radious of the solar disk.
+            resolution: Image resolution (typically 4k).
+            
+        Returns:
+            Method returns None.
+        """
         keys = list(regions.__dict__.keys())
         limits, probs = (
             np.array([regions.__dict__[key].lim for key in keys]),
@@ -263,7 +302,20 @@ class ImagePalette(object):
             self.__circle__(ax, pixel_radius, resolution)
         return
 
-    def annotate(self, annotations, ticker=0):
+    def annotate(
+        self, 
+        annotations: List[Annotation], 
+        ticker: int=0
+    ) -> None:
+        """Method to add text annotations.
+
+        Arguments:
+            annotations (List[chips.plots.Annotation]): List of annotations.
+            ticker (int): Axis number to put all the annotations.
+
+        Returns:
+            Method returns None.
+        """
         ax = self.__axis__(ticker)
         for a in annotations:
             ax.text(
@@ -280,16 +332,26 @@ class ImagePalette(object):
 
 
 class ChipsPlotter(object):
-    """ """
+    """An object class that holds the summary plots.
+
+    Attributes:
+        disk (chips.fetch.SolarDisk): Solar disk object that holds all information for drawing. 
+        figsize (Tuple): Figure size (width, height)
+        dpi (int): Dots per linear inch.
+        nrows (int): Number of axis rows in a figure palete.
+        ncols (int): Number of axis colums in a figure palete.
+    """
 
     def __init__(
         self,
         disk,
-        figsize=(6, 6),
-        dpi=240,
-        nrows=2,
-        ncols=2,
+        figsize: Tuple=(6, 6),
+        dpi: int=240,
+        nrows: int=2,
+        ncols: int=2,
     ):
+        """Initialization method.
+        """
         self.disk = disk
         self.figsize = figsize
         self.dpi = dpi
@@ -299,13 +361,23 @@ class ChipsPlotter(object):
 
     def create_diagonestics_plots(
         self,
-        fname=None,
-        figsize=None,
-        dpi=None,
-        nrows=None,
-        ncols=None,
-        prob_lower_lim=0.8,
-    ):
+        fname: str=None,
+        figsize: Tuple=None,
+        dpi: int=None,
+        nrows: int=None,
+        ncols: int=None,
+        prob_lower_lim: float=0.8,
+    ) -> None:
+        """Method to create diagonestics plots showing different steps of CHIPS.
+
+        Attributes:
+            fname (str): File name to save the image (expected file formats png, bmp, jpg, pdf, etc).
+            figsize (Tuple): Figure size (width, height)
+            dpi (int): Dots per linear inch.
+            nrows (int): Number of axis rows in a figure palete.
+            ncols (int): Number of axis colums in a figure palete.
+            prob_lower_lim (float): Minimum limit of the color bar.
+        """
         figsize = figsize if figsize else self.figsize
         dpi = dpi if dpi else self.dpi
         nrows = nrows if nrows else self.nrows
@@ -354,12 +426,21 @@ class ChipsPlotter(object):
 
     def create_output_stack(
         self,
-        fname=None,
-        figsize=None,
-        dpi=None,
-        nrows=None,
-        ncols=None,
+        fname: str=None,
+        figsize: Tuple=None,
+        dpi: int=None,
+        nrows: int=None,
+        ncols: int=None,
     ):
+        """Method to create stack plots showing different binary CH regional plots identified by CHIPS.
+
+        Attributes:
+            fname (str): File name to save the image (expected file formats png, bmp, jpg, pdf, etc).
+            figsize (Tuple): Figure size (width, height)
+            dpi (int): Dots per linear inch.
+            nrows (int): Number of axis rows in a figure palete.
+            ncols (int): Number of axis colums in a figure palete.
+        """
         figsize = figsize if figsize else self.figsize
         dpi = dpi if dpi else self.dpi
         nrows = nrows if nrows else self.nrows
