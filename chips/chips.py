@@ -24,7 +24,7 @@ from scipy import signal
 
 
 class Chips(object):
-    """An object class that runs the CHIPS algorithm step-by-step with a set of input parameters.
+    r"""An object class that runs the CHIPS algorithm step-by-step with a set of input parameters.
 
     Attributes:
         aia (fetch.RegisterAIA): AIA method that holds all the information on `List[fetch.SolarDisk]`.
@@ -67,7 +67,7 @@ class Chips(object):
         self.get_base_folder()
         return
 
-    def get_base_folder(self):
+    def get_base_folder(self) -> None:
         self.folder = self.base_folder + self.aia.date.strftime("%Y.%m.%d")
         os.makedirs(self.folder, exist_ok=True)
         return
@@ -76,7 +76,7 @@ class Chips(object):
         self,
         wavelength=None,
         resolution=None,
-    ):
+    ) -> None:
         """
         Process CHIPS code
         """
@@ -124,7 +124,7 @@ class Chips(object):
         self.plot_diagonestics(disk)
         return
 
-    def extract_solar_masks(self, disk):
+    def extract_solar_masks(self, disk) -> None:
         logger.info(f"Create solar mask for {disk.wavelength}/{disk.resolution}")
         if not hasattr(disk, "solar_mask"):
             n_mask = np.zeros_like(disk.raw.data) * np.nan
@@ -144,7 +144,7 @@ class Chips(object):
             )
         return
 
-    def run_filters(self, disk):
+    def run_filters(self, disk) -> None:
         logger.info(f"Running solar filters for {disk.wavelength}/{disk.resolution}")
         if not hasattr(disk, "solar_filter"):
             solar_disk = disk.normalized.data * disk.solar_mask.i_mask
@@ -157,7 +157,7 @@ class Chips(object):
             )
         return
 
-    def extract_histogram(self, disk):
+    def extract_histogram(self, disk) -> None:
         logger.info(f"Extract solar histogram {disk.wavelength}/{disk.resolution}")
         if not hasattr(disk, "histogram"):
             h_data = disk.solar_filter.filt_disk * disk.solar_mask.n_mask
@@ -185,7 +185,7 @@ class Chips(object):
             )
         return
 
-    def extract_histograms(self, disk):
+    def extract_histograms(self, disk) -> None:
         logger.info(
             f"Extract solar histograms for different regions {disk.wavelength}/{disk.resolution}"
         )
@@ -238,13 +238,13 @@ class Chips(object):
             )
         return
 
-    def extract_sliding_histograms(self, disk):
+    def extract_sliding_histograms(self, disk) -> None:
         logger.info(
             f"Extract solar histograms for different regions {disk.wavelength}/{disk.resolution}"
         )
         return
 
-    def extract_CHs_CHBs(self, disk):
+    def extract_CHs_CHBs(self, disk) -> None:
         logger.info(
             f"Extract CHs and CHBs for different regions {disk.wavelength}/{disk.resolution}"
         )
@@ -284,7 +284,7 @@ class Chips(object):
                 disk.set_value("solar_ch_regions", Namespace(**dtmp_map))
         return
 
-    def calculate_prob(self, data, thresholds):
+    def calculate_prob(self, data, thresholds) -> float:
         """
         Estimate probability for each map
         """
@@ -305,7 +305,19 @@ class Chips(object):
         dpi=240,
         nrows=2,
         ncols=2,
-    ):
+        prob_lower_lim: float=0.,
+    ) -> None:
+        """Method to create diagonestics plots showing different steps of CHIPS. 
+        Expected file formats png, bmp, jpg, pdf, etc.
+
+        Attributes:
+            disk (chips.fetch.SolarDisk): Solar disk object that holds all information for drawing. 
+            figsize (Tuple): Figure size (width, height)
+            dpi (int): Dots per linear inch.
+            nrows (int): Number of axis rows in a figure palete.
+            ncols (int): Number of axis colums in a figure palete.
+            prob_lower_lim (float): Minimum limit of the color bar.
+        """
         cp = ChipsPlotter(
             disk,
             figsize,
@@ -315,7 +327,7 @@ class Chips(object):
         )
         cp.create_diagonestics_plots(
             self.folder + f"/diagonestics_{disk.wavelength}_{disk.resolution}.png",
-            prob_lower_lim=0.0,
+            prob_lower_lim=prob_lower_lim,
         )
         cp.create_output_stack(
             fname=self.folder + f"/ouputstack_{disk.wavelength}_{disk.resolution}.png"

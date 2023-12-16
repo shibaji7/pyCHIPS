@@ -167,7 +167,7 @@ class ImagePalette(object):
         """Plotting colored solar disk images in the axis.
 
         Arguments:
-            map (sunpy.map.Map): Figure axis.
+            map (sunpy.map.Map): Sunpy map level dataset to plt solar disk.
             pixel_radius (int): Radious of the solar disk.
             data (np.array): 2D numpy array of dataset to plot (if not given `map.data` is plotted).
             resolution: Image resolution (typically 4k).
@@ -377,6 +377,9 @@ class ChipsPlotter(object):
             nrows (int): Number of axis rows in a figure palete.
             ncols (int): Number of axis colums in a figure palete.
             prob_lower_lim (float): Minimum limit of the color bar.
+            
+        Returns:
+            Method returns None.
         """
         figsize = figsize if figsize else self.figsize
         dpi = dpi if dpi else self.dpi
@@ -431,7 +434,7 @@ class ChipsPlotter(object):
         dpi: int=None,
         nrows: int=None,
         ncols: int=None,
-    ):
+    ) -> None:
         """Method to create stack plots showing different binary CH regional plots identified by CHIPS.
 
         Attributes:
@@ -440,6 +443,9 @@ class ChipsPlotter(object):
             dpi (int): Dots per linear inch.
             nrows (int): Number of axis rows in a figure palete.
             ncols (int): Number of axis colums in a figure palete.
+
+        Returns:
+            Method returns None.
         """
         figsize = figsize if figsize else self.figsize
         dpi = dpi if dpi else self.dpi
