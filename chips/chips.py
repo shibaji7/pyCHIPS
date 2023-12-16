@@ -24,8 +24,19 @@ from scipy import signal
 
 
 class Chips(object):
-    """
-    Analyze the Maps
+    """An object class that runs the CHIPS algorithm step-by-step with a set of input parameters.
+
+    Attributes:
+        aia (fetch.RegisterAIA): AIA method that holds all the information on `List[fetch.SolarDisk]`.
+        base_folder (str): Base folder to store the processed figures and datasets.
+        medfilt_kernel (int): Median filtering Gaussian kernel size (odd number).
+        h_bins (int): Number of bins in histogram while running Otsu's method.
+        h_thresh (float): Threshold for running Otsu's method (computed inside if not given).
+        ht_peak_ratio (int): Needed to cpmpute threhold while computing Otsu's method.
+        hist_xsplit (int): Needed to compute thresholds by splitted image (number of splitted along the image width).
+        hist_ysplit (int): Needed to compute thresholds by splitted image (number of splitted along the image height).
+        threshold_range (List[float]): List of thresholds from `h_thresh` to run CHIPS.
+        porb_threshold (int): This is $x_{tau}$.
     """
 
     def __init__(
@@ -41,6 +52,8 @@ class Chips(object):
         threshold_range: List[float] = [0, 20],
         porb_threshold: float = 0.8,
     ) -> None:
+        """Initialization method
+        """
         self.aia = aia
         self.base_folder = base_folder
         self.medfilt_kernel = medfilt_kernel
