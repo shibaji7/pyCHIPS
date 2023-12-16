@@ -244,7 +244,18 @@ class Chips(object):
         )
         return
 
-    def extract_CHs_CHBs(self, disk) -> None:
+    def extract_CHs_CHBs(
+        self, 
+        disk
+    ) -> None:
+        r"""Method extracting coronal hole and boundaries using method described in this [Section](../tutorial/workings/).
+
+        Attributes:
+            disk ():
+
+        Returns:
+            Method returns None.
+        """
         logger.info(
             f"Extract CHs and CHBs for different regions {disk.wavelength}/{disk.resolution}"
         )
