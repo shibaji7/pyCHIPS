@@ -248,10 +248,10 @@ class Chips(object):
         self, 
         disk
     ) -> None:
-        r"""Method extracting coronal hole and boundaries using method described in this [Section](../tutorial/workings/).
+        r"""Method extracting coronal hole and boundaries using method described in this [Section](../../tutorial/workings/).
 
         Attributes:
-            disk ():
+            disk (chips.fetch.SolarDisk): Solar disk information for each wavelenght bands.
 
         Returns:
             Method returns None.
@@ -300,7 +300,7 @@ class Chips(object):
         data: np.array, 
         threshold: float
     ) -> float:
-        r"""Estimate probability for each region.
+        r"""Method to estimate probability for each CH region identified by CHIPS.
 
         Attributes:
             data (np.array): Numpy 1D array holding '.fits' level intensity (I) dataset. 
