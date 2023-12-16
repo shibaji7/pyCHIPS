@@ -275,31 +275,26 @@ class SynopticMap(object):
     def __init__(
         self,
         date,
+        CR_equivalance=None,
         wavelength=193,
         location="sunpy/data/synoptic/",
-        base_url="http://jsoc.stanford.edu/data/aia/synoptic/",
-        uri_regex="{:04d}/{:02d}/{:02d}/H{:02d}00/",
-        file_name_regex="AIA{:04d}{:02d}{:02d}_{:02d}00_0{:03d}.fits",
+        base_url_regex="https://sdo.gsfc.nasa.gov/assets/img/synoptic/AIA{:04d}/CR{:04d}.fits",
+        file_name_regex="AIA0{:04d}_CR{:04d}.fits",
         norm=True,
         apply_psf=False,
     ):
         self.date = date
         self.wavelength = wavelength
         self.location = location
-        self.base_url = base_url
-        self.uri_regex = uri_regex
-        self.file_name_regex = file_name_regex
+        self.base_url_regex = base_url_regex
         self.norm = norm
         self.apply_psf = apply_psf
+        self.CR_equivalance = CR_equivalance if CR_equivalance else self.get_CR_equivalance()
         # Create all the urls and file names
         self.fname = file_name_regex.format(
-            date.year, date.month, date.day, date.hour, wavelength
+            wavelength, self.CR_equivalance
         )
-        self.remote_file_url = (
-            base_url
-            + uri_regex.format(date.year, date.month, date.day, date.hour)
-            + self.fname
-        )
+        self.remote_file_url = base_url_regex.format(wavelength, self.CR_equivalance)
         logger.info(f"Remote file {self.remote_file_url}")
         self.local_file_dir = str(Path.home() / location)
         os.makedirs(self.local_file_dir, exist_ok=True)
@@ -309,6 +304,9 @@ class SynopticMap(object):
         if self.norm:
             self.normalization()
         return
+
+    def get_CR_equivalance(self):
+        return 0
 
     def fetch(self):
         if not os.path.exists(self.local_file):

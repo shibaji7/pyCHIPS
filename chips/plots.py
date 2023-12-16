@@ -16,6 +16,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from loguru import logger
 
+from typing import Tuple
+
 
 class Annotation(object):
     """An object class that holds annotation details that put on a disk image. The attibutes
@@ -40,7 +42,7 @@ class Annotation(object):
         va: str,
         fontdict: dict = {"color": "k", "size": 10},
         rotation: float = 0,
-    ):
+    ) -> None:
         self.txt = txt
         self.xloc = xloc
         self.yloc = yloc
@@ -55,22 +57,21 @@ class ImagePalette(object):
     """An object class that holds annotation details that put on a disk image.
 
     Attributes:
-        txt (str):
-        xloc (float):
-        ha (str):
-        va (str):
-        fontdict (dict):
-        rotation (float):
+        figsize (Tuple): Figure size (width, height)
+        dpi (int): Dots per linear inch.
+        nrows (int): Number of axis rows in a figure palete.
+        ncols (int): Number of axis colums in a figure palete.
+        font_family (str): Font familly.
     """
 
     def __init__(
         self,
-        figsize=(6, 6),
-        dpi=240,
-        nrows=1,
-        ncols=1,
-        font_family="sans-serif",
-    ):
+        figsize: Tuple=(6, 6),
+        dpi: int=240,
+        nrows: int=1,
+        ncols: int=1,
+        font_family: str="sans-serif",
+    ) -> None:
         plt.rcParams["font.family"] = font_family
         if font_family == "sans-serif":
             plt.rcParams["font.sans-serif"] = [
@@ -95,16 +96,39 @@ class ImagePalette(object):
             self.axes.extend(axs.ravel())
         return
 
-    def close(self):
+    def close(self) -> None:
+        """Methods to close image palete.
+
+        Arguments:
+
+        Returns:
+            Method returns None.
+        """
         plt.close("all")
         return
 
-    def save(self, fname):
+    def save(self, fname: str) -> None:
+        """Methods to save the image into local system (expected file formats png, bmp, jpg, pdf, etc).
+
+        Arguments:
+            fname (str): File name to save the image.
+
+        Returns:
+            Method returns None.
+        """
         self.fig.subplots_adjust(hspace=0.01, wspace=0.01)
         self.fig.savefig(fname, bbox_inches="tight")
         return
 
-    def __axis__(self, ticker=None):
+    def __axis__(self, ticker: int=None) -> None:
+        """Adding/fetching axis in the figure Paletes.
+
+        Arguments:
+            ticker (int): Figure axis number.
+
+        Returns:
+            Method returns None.
+        """
         if ticker is not None:
             ax = self.axes[ticker]
         else:
@@ -113,7 +137,17 @@ class ImagePalette(object):
         ax.set_axis_off()
         return ax
 
-    def __circle__(self, ax, pixel_radius, resolution):
+    def __circle__(self, ax: matplotlib.axes.Axes, pixel_radius: int, resolution: int) -> None:
+        """Adding/fetching axis in the figure Paletes.
+
+        Arguments:
+            ax (matplotlib.axes.Axes): Figure axis.
+            pixel_radius: Radious of the solar disk.
+            resolution: Image resolution (typically 4k).
+
+        Returns:
+            Method returns None.
+        """
         ax.add_patch(
             plt.Circle(
                 (resolution / 2, resolution / 2), pixel_radius, color="w", fill=False
@@ -122,8 +156,23 @@ class ImagePalette(object):
         return
 
     def draw_colored_disk(
-        self, map, pixel_radius, data=None, resolution=4096, ticker=None, alpha=1
-    ):
+        self, 
+        map: sunpy.map.Map, 
+        pixel_radius: int, 
+        data: np.array=None, 
+        resolution: int=4096, 
+        ticker: int=None, alpha: float=1
+    ) -> None:
+        """Adding/fetching axis in the figure Paletes.
+
+        Arguments:
+            ax (matplotlib.axes.Axes): Figure axis.
+            pixel_radius: Radious of the solar disk.
+            resolution: Image resolution (typically 4k).
+
+        Returns:
+            Method returns None.
+        """
         ax = self.__axis__(ticker)
         data = data if data is not None else map.data
         norm = map.plot_settings["norm"]
