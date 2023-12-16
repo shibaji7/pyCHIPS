@@ -186,6 +186,14 @@ class Chips(object):
         return
 
     def extract_histograms(self, disk) -> None:
+        """Method extracting Otsu's thresolds by splitting solar disk into different windows (windows are estimated using `xsplit`, `ysplit`).
+
+        Attributes:
+            disk (chips.fetch.SolarDisk): Solar disk information for each wavelenght bands.
+
+        Returns:
+            Method returns None.
+        """
         logger.info(
             f"Extract solar histograms for different regions {disk.wavelength}/{disk.resolution}"
         )
@@ -239,6 +247,14 @@ class Chips(object):
         return
 
     def extract_sliding_histograms(self, disk) -> None:
+        """Method extracting Otsu's thresolds by sliding a window (size determined by `xsplit`, `ysplit`) through the solar disk.
+
+        Attributes:
+            disk (chips.fetch.SolarDisk): Solar disk information for each wavelenght bands.
+
+        Returns:
+            Method returns None.
+        """
         logger.info(
             f"Extract solar histograms for different regions {disk.wavelength}/{disk.resolution}"
         )
@@ -248,7 +264,7 @@ class Chips(object):
         self, 
         disk
     ) -> None:
-        r"""Method extracting coronal hole and boundaries using method described in this [Section](../../tutorial/workings/).
+        """Method extracting coronal hole and boundaries using method described in this [Section](../../tutorial/workings/).
 
         Attributes:
             disk (chips.fetch.SolarDisk): Solar disk information for each wavelenght bands.
