@@ -340,7 +340,7 @@ class SynopticMap(object):
         return
 
     def set_value(self, key: str, value: Any) -> None:
-        """Methods to set an attribute inside `chips.fetch.SolarDisk` object.
+        """Methods to set an attribute inside `chips.fetch.SynopticMap` object.
 
         Arguments:
             key: Key/name of the attribute
@@ -353,7 +353,7 @@ class SynopticMap(object):
         return
 
     def get_value(self, key: str) -> Any:
-        """Methods to get an attribute from `chips.fetch.SolarDisk` object.
+        """Methods to get an attribute from `chips.fetch.SynopticMap` object.
 
         Arguments:
             key: Key/name of the attribute
