@@ -1,5 +1,5 @@
 """
-    chips.py: Module is used to implement edge detection tecqniues using thresholding.
+    chips.py: Module is used to implement edge detection techniques using thresholding.
 """
 
 __author__ = "Chakraborty, S."

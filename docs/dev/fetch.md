@@ -31,3 +31,14 @@ and conditions of MIT General Public License.
     options:
       show_root_heading: true
       show_source: false
+
+
+::: chips.fetch.SynopticMap
+    handler: python
+    options:
+      members:
+        - fetch
+        - set_value
+        - get_value
+      show_root_heading: true
+      show_source: false
