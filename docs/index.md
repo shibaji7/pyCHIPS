@@ -32,5 +32,6 @@ If you have any questions or concerns please submit an **Issue** on the [pyCHIPS
     - [Example Event](tutorial/example.md)
   - Code Documentation
     - [Fetch Maps](dev/fetch.md)
-    - [CHIPS Tools](dev/chips.md)
+    - [CHIPS Tools (Disk Map)](dev/chips.md)
+    - [CHIPS Tools (Synoptic Map)](dev/syn_chips.md)
     - [Plotting Tools](dev/plots.md)

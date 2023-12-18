@@ -26,7 +26,7 @@ class Chips(object):
     r"""An object class that runs the CHIPS algorithm step-by-step with a set of input parameters.
 
     Attributes:
-        aia (chips.fetch.RegisterAIA): AIA method that holds all the information on `List[fetch.SolarDisk]`.
+        aia (chips.fetch.RegisterAIA): AIA/Map object that holds all the information on `List[chips.fetch.SolarDisk]`.
         base_folder (str): Base folder to store the processed figures and datasets.
         medfilt_kernel (int): Median filtering Gaussian kernel size (odd number).
         h_bins (int): Number of bins in histogram while running Otsu's method.
