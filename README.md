@@ -44,7 +44,7 @@ Follow the same instructions as installing the interactive notebooks.
 
 - `chips` -  the python package
 - `docs` - documentation for the codebase
-- `scripts`, etc. - example analysis scripts and Jupyter notebooks
+- `test`, etc. - example analysis scripts and Jupyter notebooks
 
 ### Setup for Developers
 - Download this Repository via git-clone.
