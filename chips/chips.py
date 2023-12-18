@@ -351,12 +351,12 @@ class Chips(object):
                 disk.set_value("solar_ch_regions", Namespace(**dtmp_map))
         return
 
-    def calculate_prob(self, data: np.array, threshold: float) -> float:
+    def calculate_prob(self, data: np.array, thresholds: List[float]) -> float:
         r"""Method to estimate probability for each CH region identified by CHIPS.
 
         Attributes:
             data (np.array): Numpy 1D array holding '.fits' level intensity (I) dataset.
-            threshold (float): Intensity thresold ($I_{th}$).
+            thresholds (List[float]): Intensity thresolds ($I_{th}$).
 
         Returns:
             p (float): Probability [$\theta$] of each region estimated using Beta function.
@@ -374,10 +374,7 @@ class Chips(object):
     def plot_diagonestics(
         self,
         disk,
-        figsize=(6, 6),
         dpi=240,
-        nrows=2,
-        ncols=2,
         prob_lower_lim: float = 0.0,
     ) -> None:
         """Method to create diagonestics plots showing different steps of CHIPS.
@@ -385,10 +382,7 @@ class Chips(object):
 
         Attributes:
             disk (chips.fetch.SolarDisk): Solar disk object that holds all information for drawing.
-            figsize (Tuple): Figure size (width, height)
             dpi (int): Dots per linear inch.
-            nrows (int): Number of axis rows in a figure palete.
-            ncols (int): Number of axis colums in a figure palete.
             prob_lower_lim (float): Minimum limit of the color bar.
 
         Returns:
@@ -396,16 +390,14 @@ class Chips(object):
         """
         cp = ChipsPlotter(
             disk,
-            figsize,
-            dpi,
-            nrows,
-            ncols,
+            dpi=dpi,
         )
         cp.create_diagonestics_plots(
             self.folder + f"/diagonestics_{disk.wavelength}_{disk.resolution}.png",
-            prob_lower_lim=prob_lower_lim,
+            prob_lower_lim=prob_lower_lim, figsize=(9,3), nrows=1, ncols=3
         )
         cp.create_output_stack(
-            fname=self.folder + f"/ouputstack_{disk.wavelength}_{disk.resolution}.png"
+            fname=self.folder + f"/ouputstack_{disk.wavelength}_{disk.resolution}.png",
+            figsize=(6,6), nrows=2, ncols=2
         )
         return

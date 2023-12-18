@@ -384,7 +384,7 @@ class ChipsPlotter(object):
         dpi = dpi if dpi else self.dpi
         nrows = nrows if nrows else self.nrows
         ncols = ncols if ncols else self.ncols
-        ip = ImagePalette((9, 3), dpi, 1, 3)
+        ip = ImagePalette(figsize, dpi, nrows, ncols)
         ip.draw_colored_disk(
             map=self.disk.normalized,
             pixel_radius=self.disk.pixel_radius,
@@ -477,3 +477,153 @@ class ChipsPlotter(object):
             ip.save(fname)
         ip.close()
         return
+
+
+class SynopticChipsPlotter(object):
+    """An object class that holds the summary plots for synoptic map analysis.
+
+    Attributes:
+        synoptic_map (chips.fetch.SynopticMap): Solar synoptic map object that holds all information for drawing.
+        figsize (Tuple): Figure size (width, height)
+        dpi (int): Dots per linear inch.
+        nrows (int): Number of axis rows in a figure palete.
+        ncols (int): Number of axis colums in a figure palete.
+    """
+
+    def __init__(
+        self,
+        synoptic_map,
+        figsize: Tuple = (6, 9),
+        dpi: int = 240,
+        nrows: int = 3,
+        ncols: int = 1,
+    ):
+        """Initialization method."""
+        self.synoptic_map = synoptic_map
+        self.figsize = figsize
+        self.dpi = dpi
+        self.nrows = nrows
+        self.ncols = ncols
+        return
+
+    def create_synoptic_diagonestics_plots(
+        self,
+        fname: str = None,
+        figsize: Tuple = None,
+        dpi: int = None,
+        nrows: int = None,
+        ncols: int = None,
+        prob_lower_lim: float = 0.8,
+    ) -> None:
+        """Method to create diagonestics plots showing different steps of CHIPS for Synoptic maps.
+
+        Attributes:
+            fname (str): File name to save the image (expected file formats png, bmp, jpg, pdf, etc).
+            figsize (Tuple): Figure size (width, height).
+            dpi (int): Dots per linear inch.
+            nrows (int): Number of axis rows in a figure palete.
+            ncols (int): Number of axis colums in a figure palete.
+            prob_lower_lim (float): Minimum limit of the color bar.
+
+        Returns:
+            Method returns None.
+        """
+        figsize = figsize if figsize else self.figsize
+        dpi = dpi if dpi else self.dpi
+        nrows = nrows if nrows else self.nrows
+        ncols = ncols if ncols else self.ncols
+        ip = ImagePalette(figsize, dpi, nrows, ncols)
+        ip.draw_colored_disk(
+            map=self.disk.normalized,
+            pixel_radius=self.disk.pixel_radius,
+            resolution=self.disk.resolution,
+        )
+        ip.draw_colored_disk(
+            map=self.disk.normalized,
+            pixel_radius=self.disk.pixel_radius,
+            resolution=self.disk.resolution,
+            data=self.disk.solar_filter.filt_disk,
+        )
+        ip.draw_colored_disk(
+            map=self.disk.normalized,
+            pixel_radius=self.disk.pixel_radius,
+            resolution=self.disk.resolution,
+        )
+        ip.ovearlay_localized_regions(
+            self.disk.solar_ch_regions, prob_lower_lim=prob_lower_lim
+        )
+        annotations = []
+        annotations.append(
+            Annotation(
+                self.disk.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
+            )
+        )
+        annotations.append(
+            Annotation(
+                r"$\lambda=%d\AA$" % self.disk.wavelength,
+                -0.05,
+                0.99,
+                "center",
+                "top",
+                rotation=90,
+            )
+        )
+        ip.annotate(annotations)
+        if fname:
+            ip.save(fname)
+        ip.close()
+        return
+
+    def create_synoptic_output_stack(
+        self,
+        fname: str = None,
+        figsize: Tuple = None,
+        dpi: int = None,
+        nrows: int = None,
+        ncols: int = None,
+    ) -> None:
+        """Method to create stack plots showing different binary CH regional plots identified by CHIPS.
+
+        Attributes:
+            fname (str): File name to save the image (expected file formats png, bmp, jpg, pdf, etc).
+            figsize (Tuple): Figure size (width, height).
+            dpi (int): Dots per linear inch.
+            nrows (int): Number of axis rows in a figure palete.
+            ncols (int): Number of axis colums in a figure palete.
+
+        Returns:
+            Method returns None.
+        """
+        figsize = figsize if figsize else self.figsize
+        dpi = dpi if dpi else self.dpi
+        nrows = nrows if nrows else self.nrows
+        ncols = ncols if ncols else self.ncols
+        ip = ImagePalette(figsize, dpi, nrows, ncols)
+        ip.plot_binary_localized_maps(
+            self.disk.solar_ch_regions,
+            self.disk.pixel_radius,
+            self.disk.resolution,
+        )
+        annotations = []
+        annotations.append(
+            Annotation(
+                self.disk.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
+            )
+        )
+        annotations.append(
+            Annotation(
+                r"$\lambda=%d\AA$" % self.disk.wavelength,
+                -0.05,
+                0.99,
+                "center",
+                "top",
+                rotation=90,
+            )
+        )
+        ip.annotate(annotations)
+        if fname:
+            ip.save(fname)
+        ip.close()
+        return
+
+    

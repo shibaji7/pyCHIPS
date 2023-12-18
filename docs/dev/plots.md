@@ -40,3 +40,13 @@ and conditions of MIT General Public License.
         - create_output_stack
       show_root_heading: true
       show_source: false
+
+::: chips.plots.SynopticChipsPlotter
+    handler: python
+    options:
+    options:
+      members:
+        - create_synoptic_diagonestics_plots
+        - create_synoptic_output_stack
+      show_root_heading: true
+      show_source: false
