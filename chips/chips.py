@@ -16,7 +16,6 @@ from argparse import Namespace
 from typing import List
 
 import cv2
-import fetch
 import numpy as np
 from loguru import logger
 from plots import ChipsPlotter
@@ -52,8 +51,7 @@ class Chips(object):
         threshold_range: List[float] = [0, 20],
         porb_threshold: float = 0.8,
     ) -> None:
-        """Initialization method
-        """
+        """Initialization method"""
         self.aia = aia
         self.base_folder = base_folder
         self.medfilt_kernel = medfilt_kernel
@@ -69,9 +67,9 @@ class Chips(object):
 
     def get_base_folder(self) -> None:
         """Method to find local base folder to store figures and outputs.
-        
+
         Attributes:
-        
+
         Returns:
             Method returns None.
         """
@@ -81,8 +79,8 @@ class Chips(object):
 
     def run_CHIPS(
         self,
-        wavelength: int=None,
-        resolution: int=None,
+        wavelength: int = None,
+        resolution: int = None,
     ) -> None:
         """This method selects the `chips.fetch.SolarDisk`(s) objects and runs the CHIPS algorithm sequentially.
 
@@ -305,10 +303,7 @@ class Chips(object):
         )
         return
 
-    def extract_CHs_CHBs(
-        self, 
-        disk
-    ) -> None:
+    def extract_CHs_CHBs(self, disk) -> None:
         """Method extracting coronal hole and boundaries using method described in this [Section](../../tutorial/workings/).
 
         Attributes:
@@ -356,15 +351,11 @@ class Chips(object):
                 disk.set_value("solar_ch_regions", Namespace(**dtmp_map))
         return
 
-    def calculate_prob(
-        self, 
-        data: np.array, 
-        threshold: float
-    ) -> float:
+    def calculate_prob(self, data: np.array, threshold: float) -> float:
         r"""Method to estimate probability for each CH region identified by CHIPS.
 
         Attributes:
-            data (np.array): Numpy 1D array holding '.fits' level intensity (I) dataset. 
+            data (np.array): Numpy 1D array holding '.fits' level intensity (I) dataset.
             threshold (float): Intensity thresold ($I_{th}$).
 
         Returns:
@@ -387,19 +378,19 @@ class Chips(object):
         dpi=240,
         nrows=2,
         ncols=2,
-        prob_lower_lim: float=0.,
+        prob_lower_lim: float = 0.0,
     ) -> None:
-        """Method to create diagonestics plots showing different steps of CHIPS. 
+        """Method to create diagonestics plots showing different steps of CHIPS.
         Expected file formats png, bmp, jpg, pdf, etc.
 
         Attributes:
-            disk (chips.fetch.SolarDisk): Solar disk object that holds all information for drawing. 
+            disk (chips.fetch.SolarDisk): Solar disk object that holds all information for drawing.
             figsize (Tuple): Figure size (width, height)
             dpi (int): Dots per linear inch.
             nrows (int): Number of axis rows in a figure palete.
             ncols (int): Number of axis colums in a figure palete.
             prob_lower_lim (float): Minimum limit of the color bar.
-        
+
         Returns:
             Method returns None.
         """

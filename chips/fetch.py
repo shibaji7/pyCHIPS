@@ -18,12 +18,15 @@ from pathlib import Path
 from typing import Any, List, Tuple
 
 import aiapy.psf
+import astropy
 import astropy.units as u
+import numpy as np
 import requests
 import sunpy.io
 import sunpy.map
 from aiapy.calibrate import normalize_exposure, register, update_pointing
 from loguru import logger
+from sunpy.coordinates.sun import carrington_rotation_number, carrington_rotation_time
 from sunpy.net import Fido, attrs
 
 
@@ -270,30 +273,42 @@ class RegisterAIA(object):
 
 
 class SynopticMap(object):
-    """ """
+    """An object class that holds all the information on solar synoptic maps.
+
+    Attributes:
+        date (datetime.datetime): Datetime of the solar disk '.fits' file.
+        CR_equivalance (int): Carrington rotation number (if not provided then computed by date)
+        wavelength (int): Wave length of the disk image [171/193/211].
+        desciption (str): Holds description of the '.fits' file.
+        location (str): Local file store to save the synoptic maps.
+        base_url_regex (str): Regex of the JSOC/SDO repository url.
+        file_name_regex (str): Regex of the local file name.
+        raw (sunpy.map.Map): Holds raw solar disk Map.    
+    """
 
     def __init__(
         self,
-        date,
-        CR_equivalance=None,
-        wavelength=193,
-        location="sunpy/data/synoptic/",
-        base_url_regex="https://sdo.gsfc.nasa.gov/assets/img/synoptic/AIA{:04d}/CR{:04d}.fits",
-        file_name_regex="AIA0{:04d}_CR{:04d}.fits",
-        norm=True,
-        apply_psf=False,
-    ):
+        date: dt.datetime,
+        CR_equivalance: int=None,
+        wavelength: int=193,
+        location: str="sunpy/data/synoptic/",
+        base_url_regex: str="https://sdo.gsfc.nasa.gov/assets/img/synoptic/AIA{:04d}/CR{:04d}.fits",
+        file_name_regex: str="AIA0{:04d}_CR{:04d}.fits",
+    ) -> None:
+        """Initalization method
+        """
         self.date = date
         self.wavelength = wavelength
         self.location = location
         self.base_url_regex = base_url_regex
-        self.norm = norm
-        self.apply_psf = apply_psf
-        self.CR_equivalance = CR_equivalance if CR_equivalance else self.get_CR_equivalance()
+        if CR_equivalance:
+            self.CR_equivalance = CR_equivalance
+            self.date = carrington_rotation_time(self.CR_equivalance)
+        else:
+            self.CR_equivalance = np.ceil(carrington_rotation_number(self.date)).astype(int)
+        logger.info(f"Carrington Rotation Number: {self.CR_equivalance}")
         # Create all the urls and file names
-        self.fname = file_name_regex.format(
-            wavelength, self.CR_equivalance
-        )
+        self.fname = file_name_regex.format(wavelength, self.CR_equivalance)
         self.remote_file_url = base_url_regex.format(wavelength, self.CR_equivalance)
         logger.info(f"Remote file {self.remote_file_url}")
         self.local_file_dir = str(Path.home() / location)
@@ -301,37 +316,49 @@ class SynopticMap(object):
         self.local_file = self.local_file_dir + "/" + self.fname
         logger.info(f"Local file {self.local_file}")
         self.fetch()
-        if self.norm:
-            self.normalization()
         return
 
-    def get_CR_equivalance(self):
-        return 0
+    def fetch(self) -> None:
+        """Method to download and store the remote files to local folder and fetch it into `sunpy.map.Map` object.
 
-    def fetch(self):
+        Attributes:
+
+        Returns:
+            Method returns None
+        """
         if not os.path.exists(self.local_file):
             req = requests.get(self.remote_file_url)
             logger.info(f"Fetching remore file status code:{req.status_code}")
             if req.status_code == 200:
                 with open(self.local_file, "wb") as f:
                     f.write(req.content)
-        self.raw = sunpy.map.Map(self.local_file)
+        with astropy.io.fits.open(self.local_file) as hdul:
+            hdul[0].verify("fix")
+            hdul[0].header["cunit1"] = "arcsec"
+            hdul[0].header["cunit2"] = "arcsec"
+            self.raw = sunpy.map.Map(hdul[0].data, hdul[0].header)
         return
 
-    def set_value(self, key: str, value: object) -> None:
+    def set_value(self, key: str, value: Any) -> None:
+        """Methods to set an attribute inside `chips.fetch.SolarDisk` object.
+
+        Arguments:
+            key: Key/name of the attribute
+            value: Value to set as attribute
+
+        Returns:
+            Method returns None
+        """
         setattr(self, key, value)
         return
 
     def get_value(self, key: str) -> Any:
+        """Methods to get an attribute from `chips.fetch.SolarDisk` object.
+
+        Arguments:
+            key: Key/name of the attribute
+
+        Returns:
+            Method returns a `object` if available
+        """
         return getattr(self, key)
-
-    def normalization(self) -> None:
-        key = "psf" if self.apply_psf else "raw"
-        logger.info(f"Normalize Syn-map using L({self.wavelength}) on {self.date}")
-        self.normalized = normalize_exposure(self.raw)
-        self.fetch_solar_parameters()
-        return
-
-    def fetch_solar_parameters(self):
-        print(self.normalized.data.shape)
-        return

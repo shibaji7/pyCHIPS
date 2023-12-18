@@ -11,13 +11,13 @@ __maintainer__ = "Chakraborty, S."
 __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
+from typing import List, Tuple
+
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from loguru import logger
 import sunpy.map
-
-from typing import Tuple, List
+from loguru import logger
 
 
 class Annotation(object):
@@ -67,11 +67,11 @@ class ImagePalette(object):
 
     def __init__(
         self,
-        figsize: Tuple=(6, 6),
-        dpi: int=240,
-        nrows: int=1,
-        ncols: int=1,
-        font_family: str="sans-serif",
+        figsize: Tuple = (6, 6),
+        dpi: int = 240,
+        nrows: int = 1,
+        ncols: int = 1,
+        font_family: str = "sans-serif",
     ) -> None:
         plt.rcParams["font.family"] = font_family
         if font_family == "sans-serif":
@@ -121,7 +121,7 @@ class ImagePalette(object):
         self.fig.savefig(fname, bbox_inches="tight")
         return
 
-    def __axis__(self, ticker: int=None) -> None:
+    def __axis__(self, ticker: int = None) -> None:
         """Adding/fetching axis in the figure Paletes.
 
         Arguments:
@@ -138,7 +138,9 @@ class ImagePalette(object):
         ax.set_axis_off()
         return ax
 
-    def __circle__(self, ax: matplotlib.axes.Axes, pixel_radius: int, resolution: int) -> None:
+    def __circle__(
+        self, ax: matplotlib.axes.Axes, pixel_radius: int, resolution: int
+    ) -> None:
         """Adding/fetching solar disk circle in the disk maps.
 
         Arguments:
@@ -157,12 +159,13 @@ class ImagePalette(object):
         return
 
     def draw_colored_disk(
-        self, 
-        map: sunpy.map.Map, 
-        pixel_radius: int, 
-        data: np.array=None, 
-        resolution: int=4096, 
-        ticker: int=None, alpha: float=1
+        self,
+        map: sunpy.map.Map,
+        pixel_radius: int,
+        data: np.array = None,
+        resolution: int = 4096,
+        ticker: int = None,
+        alpha: float = 1,
     ) -> None:
         """Plotting colored solar disk images in the axis.
 
@@ -191,13 +194,13 @@ class ImagePalette(object):
         return
 
     def ovearlay_localized_regions(
-        self, 
-        regions: List[dict], 
-        prob_lower_lim: float=0, 
-        add_color_bar: bool=True,
-        cmap: str="Spectral_r", 
+        self,
+        regions: List[dict],
+        prob_lower_lim: float = 0,
+        add_color_bar: bool = True,
+        cmap: str = "Spectral_r",
     ) -> None:
-        """Overlay the identified CH regions on top of the 
+        """Overlay the identified CH regions on top of the
 
         Arguments:
             regions (List[dict]): List of dictonary holding all the information of identified CH regions.
@@ -228,16 +231,17 @@ class ImagePalette(object):
         )
         stacked[stacked == 0.0] = np.nan
         im = ax.imshow(stacked, cmap=cmap, norm=norm, origin="lower")
-        if add_color_bar: self.__add_colorbar__(ax, im, label="Probability")
+        if add_color_bar:
+            self.__add_colorbar__(ax, im, label="Probability")
         return
 
     def __add_colorbar__(
         self,
         ax: matplotlib.axes.Axes,
         im: matplotlib.image.AxesImage,
-        label: str="",
-        xOff: float=0,
-        yOff: float=0,
+        label: str = "",
+        xOff: float = 0,
+        yOff: float = 0,
     ) -> None:
         """Add a colorbar to the right of an axis.
 
@@ -261,7 +265,7 @@ class ImagePalette(object):
         self,
         regions: List[dict],
         pixel_radius: int,
-        resolution: int=4096,
+        resolution: int = 4096,
     ):
         """Method to add binary CH region maps.
 
@@ -269,7 +273,7 @@ class ImagePalette(object):
             regions (List[dict]): List of dictonary holding all the information of identified CH regions.
             pixel_radius (int): Radious of the solar disk.
             resolution: Image resolution (typically 4k).
-            
+
         Returns:
             Method returns None.
         """
@@ -302,11 +306,7 @@ class ImagePalette(object):
             self.__circle__(ax, pixel_radius, resolution)
         return
 
-    def annotate(
-        self, 
-        annotations: List[Annotation], 
-        ticker: int=0
-    ) -> None:
+    def annotate(self, annotations: List[Annotation], ticker: int = 0) -> None:
         """Method to add text annotations.
 
         Arguments:
@@ -335,7 +335,7 @@ class ChipsPlotter(object):
     """An object class that holds the summary plots.
 
     Attributes:
-        disk (chips.fetch.SolarDisk): Solar disk object that holds all information for drawing. 
+        disk (chips.fetch.SolarDisk): Solar disk object that holds all information for drawing.
         figsize (Tuple): Figure size (width, height)
         dpi (int): Dots per linear inch.
         nrows (int): Number of axis rows in a figure palete.
@@ -345,13 +345,12 @@ class ChipsPlotter(object):
     def __init__(
         self,
         disk,
-        figsize: Tuple=(6, 6),
-        dpi: int=240,
-        nrows: int=2,
-        ncols: int=2,
+        figsize: Tuple = (6, 6),
+        dpi: int = 240,
+        nrows: int = 2,
+        ncols: int = 2,
     ):
-        """Initialization method.
-        """
+        """Initialization method."""
         self.disk = disk
         self.figsize = figsize
         self.dpi = dpi
@@ -361,12 +360,12 @@ class ChipsPlotter(object):
 
     def create_diagonestics_plots(
         self,
-        fname: str=None,
-        figsize: Tuple=None,
-        dpi: int=None,
-        nrows: int=None,
-        ncols: int=None,
-        prob_lower_lim: float=0.8,
+        fname: str = None,
+        figsize: Tuple = None,
+        dpi: int = None,
+        nrows: int = None,
+        ncols: int = None,
+        prob_lower_lim: float = 0.8,
     ) -> None:
         """Method to create diagonestics plots showing different steps of CHIPS.
 
@@ -377,7 +376,7 @@ class ChipsPlotter(object):
             nrows (int): Number of axis rows in a figure palete.
             ncols (int): Number of axis colums in a figure palete.
             prob_lower_lim (float): Minimum limit of the color bar.
-            
+
         Returns:
             Method returns None.
         """
@@ -429,11 +428,11 @@ class ChipsPlotter(object):
 
     def create_output_stack(
         self,
-        fname: str=None,
-        figsize: Tuple=None,
-        dpi: int=None,
-        nrows: int=None,
-        ncols: int=None,
+        fname: str = None,
+        figsize: Tuple = None,
+        dpi: int = None,
+        nrows: int = None,
+        ncols: int = None,
     ) -> None:
         """Method to create stack plots showing different binary CH regional plots identified by CHIPS.
 
