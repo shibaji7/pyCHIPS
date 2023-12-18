@@ -18,7 +18,7 @@ from typing import List
 import cv2
 import numpy as np
 from loguru import logger
-from plots import ChipsPlotter
+from plots import SynopticChipsPlotter
 from scipy import signal
 
 class SynopticChips(object):
@@ -47,7 +47,7 @@ class SynopticChips(object):
         ht_peak_ratio: int = 5,
         hist_xsplit: int = 2,
         hist_ysplit: int = 2,
-        threshold_range: List[float] = [0, 20],
+        threshold_range: List[float] = [-5, 20],
         porb_threshold: float = 0.8,
     ) -> None:
         """Initialization method"""
@@ -72,7 +72,7 @@ class SynopticChips(object):
         Returns:
             Method returns None.
         """
-        self.folder = self.base_folder + self.aia.date.strftime("%Y.%m.%d")
+        self.folder = self.base_folder + self.synoptic_map.date.strftime("%Y.%m.%d")
         os.makedirs(self.folder, exist_ok=True)
         return
 
@@ -255,12 +255,12 @@ class SynopticChips(object):
                 synoptic_map.set_value("solar_ch_regions", Namespace(**dtmp_map))
         return
 
-    def calculate_prob(self, data: np.array, threshold: float) -> float:
+    def calculate_prob(self, data: np.array, thresholds: float) -> float:
         r"""Method to estimate probability for each CH region identified by CHIPS.
 
         Attributes:
             data (np.array): Numpy 1D array holding '.fits' level intensity (I) dataset.
-            threshold (float): Intensity thresold ($I_{th}$).
+            thresholds (float): Intensity thresold ($I_{th}$).
 
         Returns:
             p (float): Probability [$\theta$] of each region estimated using Beta function.
@@ -278,10 +278,7 @@ class SynopticChips(object):
     def plot_diagonestics(
         self,
         synoptic_map,
-        figsize=(6, 6),
         dpi=240,
-        nrows=2,
-        ncols=2,
         prob_lower_lim: float = 0.0,
     ) -> None:
         """Method to create diagonestics plots showing different steps of CHIPS.
@@ -289,27 +286,22 @@ class SynopticChips(object):
 
         Attributes:
             synoptic_map (chips.fetch.SynopticMap): Solar Synoptic Map object that holds all information for drawing.
-            figsize (Tuple): Figure size (width, height)
             dpi (int): Dots per linear inch.
-            nrows (int): Number of axis rows in a figure palete.
-            ncols (int): Number of axis colums in a figure palete.
             prob_lower_lim (float): Minimum limit of the color bar.
 
         Returns:
             Method returns None.
         """
-        cp = ChipsPlotter(
+        scp = SynopticChipsPlotter(
             synoptic_map,
-            figsize,
-            dpi,
-            nrows,
-            ncols,
+            dpi=dpi,
         )
-        cp.create_diagonestics_plots(
+        scp.create_synoptic_diagonestics_plots(
             self.folder + f"/synoptic_diagonestics_{synoptic_map.wavelength}.png",
-            prob_lower_lim=prob_lower_lim,
+            prob_lower_lim=prob_lower_lim, figsize=(6,6), nrows=2, ncols=1
         )
-        cp.create_output_stack(
-            fname=self.folder + f"/synoptic_ouputstack_{synoptic_map.wavelength}.png"
+        scp.create_synoptic_output_stack(
+            fname=self.folder + f"/synoptic_ouputstack_{synoptic_map.wavelength}.png",
+            figsize=(12,24), nrows=2, ncols=2
         )
         return

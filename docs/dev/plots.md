@@ -27,6 +27,9 @@ and conditions of MIT General Public License.
         - draw_colored_disk
         - ovearlay_localized_regions
         - plot_binary_localized_maps
+        - draw_colored_synoptic_map
+        - ovearlay_localized_synoptic_regions
+        - plot_binary_localized_synoptic_maps
         - annotate
       show_root_heading: true
       show_source: false

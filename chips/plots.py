@@ -17,6 +17,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import sunpy.map
+import sunpy.visualization.colormaps as cm
 from loguru import logger
 
 
@@ -200,7 +201,7 @@ class ImagePalette(object):
         add_color_bar: bool = True,
         cmap: str = "Spectral_r",
     ) -> None:
-        """Overlay the identified CH regions on top of the
+        """Overlay the identified CH regions on top of the Disk maps.
 
         Arguments:
             regions (List[dict]): List of dictonary holding all the information of identified CH regions.
@@ -327,6 +328,118 @@ class ImagePalette(object):
                 transform=ax.transAxes,
                 fontdict=a.fontdict,
                 rotation=a.rotation,
+            )
+        return
+
+    def draw_colored_synoptic_map(
+        self,
+        map: sunpy.map.Map,
+        wavelength: int,
+        ticker: int = None,
+        alpha: float = 1,
+    ) -> None:
+        """Plotting colored solar syoptic images in the axis.
+
+        Arguments:
+            map (sunpy.map.Map): Sunpy map level dataset to plt solar synoptic maps.
+            wavelength (int): Wave length of the disk image [171/193/211].
+            ticker (int): Axis ticker.
+            alpha (float): Figure transparency (0,1).
+
+        Returns:
+            Method returns None.
+        """
+        ax = self.__axis__()
+        norm = map.plot_settings["norm"]
+        norm.vmin, norm.vmax = np.nanpercentile(map.data, [1, 99.9])
+        ax.imshow(
+            map.data,
+            norm=norm,
+            cmap=cm.cmlist[f"sdoaia{wavelength}"],
+            origin="lower",
+            alpha=alpha,
+        )
+        return
+
+    def ovearlay_localized_synoptic_regions(
+        self,
+        regions: List[dict],
+        prob_lower_lim: float = 0,
+        add_color_bar: bool = True,
+        cmap: str = "Spectral_r",
+    ) -> None:
+        """Overlay the identified CH regions on top of the synoptic maps.
+
+        Arguments:
+            regions (List[dict]): List of dictonary holding all the information of identified CH regions.
+            prob_lower_lim (float): Minimum limit of the color bar.
+            add_color_bar (bool): If `true` plot the probability colorbar on right.
+            cmap (str): Color map in string - refer `matplotlib` for details.
+
+        Returns:
+            Method returns None.
+        """
+        ax = self.__axis__(ticker=self.ticker - 1)
+        keys = list(regions.__dict__.keys())
+        limits, probs = (
+            np.array([regions.__dict__[key].lim for key in keys]),
+            np.array([regions.__dict__[key].prob for key in keys]),
+        )
+        n_probs = (probs - probs.min()) / (probs.max() - probs.min())
+        logger.info(f"Total regions plotted with seperators {len(keys)}")
+        norm = matplotlib.colors.Normalize(vmin=prob_lower_lim, vmax=1.0)
+        cmap = matplotlib.cm.get_cmap(cmap)
+        stacked = np.max(
+            [
+                regions.__dict__[key].map * p
+                for key, p in zip(keys, n_probs)
+                if p >= prob_lower_lim
+            ],
+            axis=0,
+        )
+        stacked[stacked == 0.0] = np.nan
+        im = ax.imshow(stacked, cmap=cmap, norm=norm, origin="lower")
+        if add_color_bar:
+            self.__add_colorbar__(ax, im, label="Probability")
+        return
+
+    def plot_binary_localized_synoptic_maps(
+        self,
+        regions: List[dict]
+    ):
+        """Method to add binary CH region synoptic maps.
+
+        Arguments:
+            regions (List[dict]): List of dictonary holding all the information of identified CH regions.
+
+        Returns:
+            Method returns None.
+        """
+        keys = list(regions.__dict__.keys())
+        limits, probs = (
+            np.array([regions.__dict__[key].lim for key in keys]),
+            np.array([regions.__dict__[key].prob for key in keys]),
+        )
+        n_probs = (probs - probs.min()) / (probs.max() - probs.min())
+        fig_num = len(self.axes)
+        total_num_regions = len(keys)
+        logger.info(
+            f"Total regions plotted with seperators {len(keys)}, but will be plotted {fig_num}"
+        )
+        keys = keys[:: int(total_num_regions / fig_num)][: len(self.axes)]
+        for key, p in zip(keys, n_probs):
+            ax = self.__axis__()
+            map = regions.__dict__[key].map
+            ax.imshow(map, cmap="gray", vmax=1, vmin=0, origin="lower")
+            txt = r"$\tau=$%s" % key + "\n" + r"$\mathcal{p}=%.3f$" % p
+            ax.text(
+                0.05,
+                0.9,
+                txt,
+                ha="left",
+                va="center",
+                transform=ax.transAxes,
+                fontdict={"color": "w"},
             )
         return
 
@@ -533,34 +646,26 @@ class SynopticChipsPlotter(object):
         nrows = nrows if nrows else self.nrows
         ncols = ncols if ncols else self.ncols
         ip = ImagePalette(figsize, dpi, nrows, ncols)
-        ip.draw_colored_disk(
-            map=self.disk.normalized,
-            pixel_radius=self.disk.pixel_radius,
-            resolution=self.disk.resolution,
+        ip.draw_colored_synoptic_map(
+            map=self.synoptic_map.raw,
+            wavelength=self.synoptic_map.wavelength,
         )
-        ip.draw_colored_disk(
-            map=self.disk.normalized,
-            pixel_radius=self.disk.pixel_radius,
-            resolution=self.disk.resolution,
-            data=self.disk.solar_filter.filt_disk,
+        ip.draw_colored_synoptic_map(
+            map=self.synoptic_map.raw,
+            wavelength=self.synoptic_map.wavelength,
         )
-        ip.draw_colored_disk(
-            map=self.disk.normalized,
-            pixel_radius=self.disk.pixel_radius,
-            resolution=self.disk.resolution,
-        )
-        ip.ovearlay_localized_regions(
-            self.disk.solar_ch_regions, prob_lower_lim=prob_lower_lim
+        ip.ovearlay_localized_synoptic_regions(
+            self.synoptic_map.solar_ch_regions,
         )
         annotations = []
         annotations.append(
             Annotation(
-                self.disk.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
+                self.synoptic_map.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
             )
         )
         annotations.append(
             Annotation(
-                r"$\lambda=%d\AA$" % self.disk.wavelength,
+                r"$\lambda=%d\AA$" % self.synoptic_map.wavelength,
                 -0.05,
                 0.99,
                 "center",
@@ -599,20 +704,16 @@ class SynopticChipsPlotter(object):
         nrows = nrows if nrows else self.nrows
         ncols = ncols if ncols else self.ncols
         ip = ImagePalette(figsize, dpi, nrows, ncols)
-        ip.plot_binary_localized_maps(
-            self.disk.solar_ch_regions,
-            self.disk.pixel_radius,
-            self.disk.resolution,
-        )
+        ip.plot_binary_localized_synoptic_maps(self.synoptic_map.solar_ch_regions)
         annotations = []
         annotations.append(
             Annotation(
-                self.disk.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
+                self.synoptic_map.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
             )
         )
         annotations.append(
             Annotation(
-                r"$\lambda=%d\AA$" % self.disk.wavelength,
+                r"$\lambda=%d\AA$" % self.synoptic_map.wavelength,
                 -0.05,
                 0.99,
                 "center",
