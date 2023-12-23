@@ -167,6 +167,7 @@ class ImagePalette(object):
         resolution: int = 4096,
         ticker: int = None,
         alpha: float = 1,
+        draw_circle: bool = True,
     ) -> None:
         """Plotting colored solar disk images in the axis.
 
@@ -176,6 +177,8 @@ class ImagePalette(object):
             data (np.array): 2D numpy array of dataset to plot (if not given `map.data` is plotted).
             resolution: Image resolution (typically 4k).
             ticker (int): Axis ticker.
+            alpha (float): Figure transparency.
+            draw_circle (bool): Draw the solar disk.
 
         Returns:
             Method returns None.
@@ -191,7 +194,7 @@ class ImagePalette(object):
             origin="lower",
             alpha=alpha,
         )
-        self.__circle__(ax, pixel_radius, resolution)
+        if draw_circle: self.__circle__(ax, pixel_radius, resolution)
         return
 
     def ovearlay_localized_regions(
