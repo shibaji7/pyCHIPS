@@ -24,7 +24,7 @@ import numpy as np
 import requests
 import sunpy.io
 import sunpy.map
-from aiapy.calibrate import normalize_exposure, register, update_pointing
+from aiapy.calibrate import normalize_exposure, register, update_pointing, correct_degradation
 from loguru import logger
 from sunpy.coordinates.sun import carrington_rotation_number, carrington_rotation_time
 from sunpy.net import Fido, attrs
@@ -39,6 +39,7 @@ class SolarDisk(object):
         resolution (int): Resolution of the image to work on [4096].
         apply_psf (bool): If `true`, conduct deconvololution with a point spread function.
         norm (bool): If `true`, conduct image registrtation and normalization.
+        use_gpu (bool): If `true` and `cupy` is installed, do PSF deconvolution on the GPU with `cupy`.
         desciption (str): Holds description of the '.fits' file.
         raw (sunpy.map.Map): Holds raw solar disk Map.
         psf (sunpy.map.Map): Holds deconvolved solar disk Map.
@@ -53,6 +54,7 @@ class SolarDisk(object):
         resolution: int = 4096,
         apply_psf: bool = False,
         norm: bool = True,
+        use_gpu: bool = True,
     ) -> None:
         """Initialize the parameters provided by kwargs."""
         self.date = date
@@ -60,6 +62,7 @@ class SolarDisk(object):
         self.resolution = resolution if resolution else 4096
         self.apply_psf = apply_psf
         self.norm = norm
+        self.use_gpu = use_gpu
         self.desciption = f"Solar Disk during {date} seeing through {wavelength}A, observing at {resolution} px."
         self.fetch()
         if self.norm:
@@ -142,7 +145,7 @@ class SolarDisk(object):
         if self.resolution != 4096:
             pass
         if self.apply_psf:
-            self.psf = aiapy.psf.deconvolve(self.raw)
+            self.psf = aiapy.psf.deconvolve(self.raw, use_gpu=self.use_gpu)
         return
 
     def normalization(self) -> None:
@@ -159,6 +162,7 @@ class SolarDisk(object):
         )
         updated_point = update_pointing(getattr(self, key))
         registred = register(updated_point)
+        registred = correct_degradation(registred)
         self.normalized = normalize_exposure(registred)
         self.fetch_solar_parameters()
         return

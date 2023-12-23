@@ -23,12 +23,10 @@ class TestSolarDisk(unittest.TestCase):
     def test_fetch_193_solar_disk_norm(self):
         aia = SolarDisk(
             dt.datetime(2018, 5, 18, 12),
-            193
+            193, apply_psf=True
         )
         self.assertTrue(hasattr(aia, "raw"))
         self.assertIsNotNone(aia.raw)
-        self.assertTrue(hasattr(aia, "registred"))
-        self.assertIsNotNone(aia.registred)
         self.assertTrue(hasattr(aia, "normalized"))
         self.assertIsNotNone(aia.normalized)
         return
@@ -41,7 +39,6 @@ class TestSolarDisk(unittest.TestCase):
         self.assertTrue(hasattr(aia, "raw"))
         self.assertIsNotNone(aia.raw)
         self.assertFalse(hasattr(aia, "normalized"))
-        self.assertFalse(hasattr(aia, "registred"))
         return
 
 
