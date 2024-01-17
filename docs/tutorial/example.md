@@ -40,3 +40,4 @@ chips193 = Chips(aia193, medfilt_kernel=11)
 chips193.run_CHIPS()
 ```
 
+Upon executing the `run_CHIPS` method, a series of informative summary plots will be automatically generated. To access detailed information about the identified coronal hole regions, users should refer to the `solar_ch_regions` object, which is a dictionary (`dict`) containing comprehensive insights. This object encapsulates key data points and characteristics of the detected coronal hole regions, ensuring that users have access to a clear and structured overview of the analysis results. By leveraging this object, researchers and analysts can streamline their post-processing activities, gaining valuable insights into the solar physics phenomena identified through the CHIPS algorithm. The integration of these summary plots and the user-friendly structure of the `solar_ch_regions` object enhances the efficiency and effectiveness of your coronal hole analysis workflow.
