@@ -64,6 +64,8 @@ class ImagePalette(object):
         nrows (int): Number of axis rows in a figure palete.
         ncols (int): Number of axis colums in a figure palete.
         font_family (str): Font familly.
+        sharex (str): Shareing X-axis ['all', 'row', 'col', 'none'].
+        sharey (str): Shareing X-axis ['all', 'row', 'col', 'none'],
     """
 
     def __init__(
@@ -73,6 +75,8 @@ class ImagePalette(object):
         nrows: int = 1,
         ncols: int = 1,
         font_family: str = "sans-serif",
+        sharex: str = "all",
+        sharey: str = "all",
     ) -> None:
         plt.rcParams["font.family"] = font_family
         if font_family == "sans-serif":
@@ -85,8 +89,8 @@ class ImagePalette(object):
         self.fig, axs = plt.subplots(
             nrows=nrows,
             ncols=ncols,
-            sharex="all",
-            sharey="all",
+            sharex=sharex,
+            sharey=sharey,
             figsize=figsize,
             dpi=dpi,
         )
@@ -122,11 +126,12 @@ class ImagePalette(object):
         self.fig.savefig(fname, bbox_inches="tight")
         return
 
-    def __axis__(self, ticker: int = None) -> None:
+    def __axis__(self, ticker: int = None, axis_off: bool = True) -> None:
         """Adding/fetching axis in the figure Paletes.
 
         Arguments:
             ticker (int): Figure axis number.
+            axis_off (bool): Set both axis Off.
 
         Returns:
             Method returns None.
@@ -136,25 +141,26 @@ class ImagePalette(object):
         else:
             ax = self.axes[self.ticker]
             self.ticker += 1
-        ax.set_axis_off()
+        if axis_off: ax.set_axis_off()
         return ax
 
     def __circle__(
-        self, ax: matplotlib.axes.Axes, pixel_radius: int, resolution: int
+        self, ax: matplotlib.axes.Axes, pixel_radius: int, resolution: int, color: str="w"
     ) -> None:
         """Adding/fetching solar disk circle in the disk maps.
 
         Arguments:
             ax (matplotlib.axes.Axes): Figure axis.
-            pixel_radius: Radious of the solar disk.
+            pixel_radius (int): Radious of the solar disk.
             resolution: Image resolution (typically 4k).
+            color (str): Rim color.
 
         Returns:
             Method returns None.
         """
         ax.add_patch(
             plt.Circle(
-                (resolution / 2, resolution / 2), pixel_radius, color="w", fill=False
+                (resolution / 2, resolution / 2), pixel_radius, color=color, fill=False
             )
         )
         return
@@ -194,7 +200,47 @@ class ImagePalette(object):
             origin="lower",
             alpha=alpha,
         )
-        if draw_circle: self.__circle__(ax, pixel_radius, resolution)
+        if draw_circle:
+            self.__circle__(ax, pixel_radius, resolution)
+        return
+
+    def draw_grayscale_disk(
+        self,
+        map: sunpy.map.Map,
+        pixel_radius: int,
+        data: np.array = None,
+        resolution: int = 4096,
+        ticker: int = None,
+        alpha: float = 1,
+        draw_circle: bool = True,
+    ) -> None:
+        """Plotting gray-scaled solar disk images in the axis.
+
+        Arguments:
+            map (sunpy.map.Map): Sunpy map level dataset to plt solar disk.
+            pixel_radius (int): Radious of the solar disk.
+            data (np.array): 2D numpy array of dataset to plot (if not given `map.data` is plotted).
+            resolution: Image resolution (typically 4k).
+            ticker (int): Axis ticker.
+            alpha (float): Figure transparency.
+            draw_circle (bool): Draw the solar disk.
+
+        Returns:
+            Method returns None.
+        """
+        ax = self.__axis__(ticker)
+        data = data if data is not None else map.data
+        norm = map.plot_settings["norm"]
+        norm.vmin, norm.vmax = np.percentile(map.data, [30, 99.9])
+        ax.imshow(
+            data,
+            norm=norm,
+            cmap="gray",
+            origin="lower",
+            alpha=alpha,
+        )
+        if draw_circle:
+            self.__circle__(ax, pixel_radius, resolution, color="m")
         return
 
     def ovearlay_localized_regions(
@@ -203,6 +249,8 @@ class ImagePalette(object):
         prob_lower_lim: float = 0,
         add_color_bar: bool = True,
         cmap: str = "Spectral_r",
+        ticker: int = None,
+        convert_bgc_black: bool = False,
     ) -> None:
         """Overlay the identified CH regions on top of the Disk maps.
 
@@ -211,11 +259,14 @@ class ImagePalette(object):
             prob_lower_lim (float): Minimum limit of the color bar.
             add_color_bar (bool): If `true` plot the probability colorbar on right.
             cmap (str): Color map in string - refer `matplotlib` for details.
+            ticker (int): Axis ticker.
+            convert_bgc_black (bool): Convert BGC color black.
 
         Returns:
             Method returns None.
         """
-        ax = self.__axis__(ticker=self.ticker - 1)
+        ticker = ticker if ticker else self.ticker - 1
+        ax = self.__axis__(ticker)
         keys = list(regions.__dict__.keys())
         limits, probs = (
             np.array([regions.__dict__[key].lim for key in keys]),
@@ -232,9 +283,11 @@ class ImagePalette(object):
                 if p >= prob_lower_lim
             ],
             axis=0,
-        )
+        )   
         stacked[stacked == 0.0] = np.nan
+        
         im = ax.imshow(stacked, cmap=cmap, norm=norm, origin="lower")
+        ax.patch.set_facecolor('black')
         if add_color_bar:
             self.__add_colorbar__(ax, im, label="Probability")
         return
@@ -276,7 +329,7 @@ class ImagePalette(object):
         Arguments:
             regions (List[dict]): List of dictonary holding all the information of identified CH regions.
             pixel_radius (int): Radious of the solar disk.
-            resolution: Image resolution (typically 4k).
+            resolution (int): Image resolution (typically 4k).
 
         Returns:
             Method returns None.
@@ -294,10 +347,34 @@ class ImagePalette(object):
         )
         keys = keys[:: int(total_num_regions / fig_num)][: len(self.axes)]
         for key, p in zip(keys, n_probs):
-            ax = self.__axis__()
             map = regions.__dict__[key].map
-            ax.imshow(map, cmap="gray", vmax=1, vmin=0, origin="lower")
             txt = r"$\tau=$%s" % key + "\n" + r"$\mathcal{p}=%.3f$" % p
+            self.plot_binary_localized_map(map, pixel_radius, resolution, None, txt)
+        return
+
+    def plot_binary_localized_map(
+        self,
+        map: sunpy.map.Map,
+        pixel_radius: int,
+        resolution: int = 4096,
+        ticker: int = None,
+        txt: str = None,
+    ):
+        """Method to add binary CH region map.
+
+        Arguments:
+            regions (List[dict]): List of dictonary holding all the information of identified CH regions.
+            pixel_radius (int): Radious of the solar disk.
+            resolution (int): Image resolution (typically 4k).
+            ticker (int): Axis ticker.
+            txt (str): Text to add.
+
+        Returns:
+            Method returns None.
+        """
+        ax = self.__axis__(ticker)
+        ax.imshow(map, cmap="gray", vmax=1, vmin=0, origin="lower")
+        if txt:
             ax.text(
                 0.05,
                 0.9,
@@ -307,7 +384,7 @@ class ImagePalette(object):
                 transform=ax.transAxes,
                 fontdict={"color": "w"},
             )
-            self.__circle__(ax, pixel_radius, resolution)
+        self.__circle__(ax, pixel_radius, resolution)
         return
 
     def annotate(self, annotations: List[Annotation], ticker: int = 0) -> None:
@@ -406,10 +483,7 @@ class ImagePalette(object):
             self.__add_colorbar__(ax, im, label="Probability")
         return
 
-    def plot_binary_localized_synoptic_maps(
-        self,
-        regions: List[dict]
-    ):
+    def plot_binary_localized_synoptic_maps(self, regions: List[dict]):
         """Method to add binary CH region synoptic maps.
 
         Arguments:
@@ -663,7 +737,11 @@ class SynopticChipsPlotter(object):
         annotations = []
         annotations.append(
             Annotation(
-                self.synoptic_map.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
+                self.synoptic_map.date.strftime("%Y-%m-%d %H:%M"),
+                0.05,
+                1.05,
+                "left",
+                "center",
             )
         )
         annotations.append(
@@ -711,7 +789,11 @@ class SynopticChipsPlotter(object):
         annotations = []
         annotations.append(
             Annotation(
-                self.synoptic_map.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
+                self.synoptic_map.date.strftime("%Y-%m-%d %H:%M"),
+                0.05,
+                1.05,
+                "left",
+                "center",
             )
         )
         annotations.append(
@@ -729,5 +811,3 @@ class SynopticChipsPlotter(object):
             ip.save(fname)
         ip.close()
         return
-
-    

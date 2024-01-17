@@ -24,7 +24,12 @@ import numpy as np
 import requests
 import sunpy.io
 import sunpy.map
-from aiapy.calibrate import normalize_exposure, register, update_pointing, correct_degradation
+from aiapy.calibrate import (
+    correct_degradation,
+    normalize_exposure,
+    register,
+    update_pointing,
+)
 from loguru import logger
 from sunpy.coordinates.sun import carrington_rotation_number, carrington_rotation_time
 from sunpy.net import Fido, attrs
@@ -287,20 +292,19 @@ class SynopticMap(object):
         location (str): Local file store to save the synoptic maps.
         base_url_regex (str): Regex of the JSOC/SDO repository url.
         file_name_regex (str): Regex of the local file name.
-        raw (sunpy.map.Map): Holds raw solar disk Map.    
+        raw (sunpy.map.Map): Holds raw solar disk Map.
     """
 
     def __init__(
         self,
         date: dt.datetime,
-        CR_equivalance: int=None,
-        wavelength: int=193,
-        location: str="sunpy/data/synoptic/",
-        base_url_regex: str="https://sdo.gsfc.nasa.gov/assets/img/synoptic/AIA{:04d}/CR{:04d}.fits",
-        file_name_regex: str="AIA0{:04d}_CR{:04d}.fits",
+        CR_equivalance: int = None,
+        wavelength: int = 193,
+        location: str = "sunpy/data/synoptic/",
+        base_url_regex: str = "https://sdo.gsfc.nasa.gov/assets/img/synoptic/AIA{:04d}/CR{:04d}.fits",
+        file_name_regex: str = "AIA0{:04d}_CR{:04d}.fits",
     ) -> None:
-        """Initalization method
-        """
+        """Initalization method"""
         self.date = date
         self.wavelength = wavelength
         self.location = location
@@ -309,7 +313,9 @@ class SynopticMap(object):
             self.CR_equivalance = CR_equivalance
             self.date = carrington_rotation_time(self.CR_equivalance)
         else:
-            self.CR_equivalance = np.ceil(carrington_rotation_number(self.date)).astype(int)
+            self.CR_equivalance = np.ceil(carrington_rotation_number(self.date)).astype(
+                int
+            )
         logger.info(f"Carrington Rotation Number: {self.CR_equivalance}")
         # Create all the urls and file names
         self.fname = file_name_regex.format(wavelength, self.CR_equivalance)

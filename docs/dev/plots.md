@@ -25,6 +25,7 @@ and conditions of MIT General Public License.
         - close
         - save
         - draw_colored_disk
+        - draw_grayscale_disk
         - ovearlay_localized_regions
         - plot_binary_localized_maps
         - draw_colored_synoptic_map

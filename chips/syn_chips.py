@@ -15,11 +15,11 @@ import os
 from argparse import Namespace
 from typing import List
 
-import cv2
 import numpy as np
 from loguru import logger
 from plots import SynopticChipsPlotter
 from scipy import signal
+
 
 class SynopticChips(object):
     r"""An object class that runs the CHIPS algorithm on synoptic maps step-by-step with a set of input parameters.
@@ -103,9 +103,7 @@ class SynopticChips(object):
         """
         logger.info(f"Running solar filters for {synoptic_map.wavelength}")
         if not hasattr(synoptic_map, "solar_filter"):
-            solar_filter = signal.medfilt2d(
-                synoptic_map.raw.data, self.medfilt_kernel
-            )
+            solar_filter = signal.medfilt2d(synoptic_map.raw.data, self.medfilt_kernel)
             synoptic_map.set_value("solar_filter", solar_filter)
         return
 
@@ -298,10 +296,15 @@ class SynopticChips(object):
         )
         scp.create_synoptic_diagonestics_plots(
             self.folder + f"/synoptic_diagonestics_{synoptic_map.wavelength}.png",
-            prob_lower_lim=prob_lower_lim, figsize=(6,6), nrows=2, ncols=1
+            prob_lower_lim=prob_lower_lim,
+            figsize=(6, 6),
+            nrows=2,
+            ncols=1,
         )
         scp.create_synoptic_output_stack(
             fname=self.folder + f"/synoptic_ouputstack_{synoptic_map.wavelength}.png",
-            figsize=(12,24), nrows=2, ncols=2
+            figsize=(12, 24),
+            nrows=2,
+            ncols=2,
         )
         return

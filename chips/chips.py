@@ -91,22 +91,17 @@ class Chips(object):
         Returns:
             Method returns None.
         """
-        self.simulaion_outputs = dict()
         if (wavelength is not None) and (resolution is not None):
             if (wavelength in self.aia.wavelengths) and (
                 resolution in self.aia.resolutions
             ):
-                self.simulaion_outputs[wavelength] = dict()
                 logger.info(f"Singleton: Running CHIPS for {wavelength}/{resolution}")
                 disk = self.aia.datasets[wavelength][resolution]
-                self.simulaion_outputs[wavelength][resolution] = self.process_CHIPS(
-                    disk
-                )
+                self.process_CHIPS(disk)
             else:
                 logger.error(f"No entry for {wavelength} and {resolution}!!!")
         else:
             for wavelength in self.aia.wavelengths:
-                self.simulaion_outputs[wavelength] = dict()
                 for resolution in self.aia.resolutions:
                     if (wavelength in self.aia.wavelengths) and (
                         resolution in self.aia.resolutions
@@ -115,9 +110,7 @@ class Chips(object):
                             f"Multiton: Running CHIPS for {wavelength}/{resolution}"
                         )
                         disk = self.aia.datasets[wavelength][resolution]
-                        self.simulaion_outputs[wavelength][
-                            resolution
-                        ] = self.process_CHIPS(disk)
+                        self.process_CHIPS(disk)
                     else:
                         logger.error(f"No entry for {wavelength} and {resolution}!!!")
         return
@@ -220,6 +213,7 @@ class Chips(object):
                     **dict(
                         peaks=peaks,
                         hbase=h,
+                        hbins=be,
                         bound=bc,
                         h_thresh=self.h_thresh,
                         h_bins=self.h_bins,
@@ -301,6 +295,12 @@ class Chips(object):
         logger.info(
             f"Extract solar histograms for different regions {disk.wavelength}/{disk.resolution}"
         )
+        if (
+            not hasattr(disk, "histograms")
+            and (self.hist_xsplit is not None)
+            and (self.hist_ysplit is not None)
+        ):
+            pass
         return
 
     def extract_CHs_CHBs(self, disk) -> None:
@@ -394,10 +394,39 @@ class Chips(object):
         )
         cp.create_diagonestics_plots(
             self.folder + f"/diagonestics_{disk.wavelength}_{disk.resolution}.png",
-            prob_lower_lim=prob_lower_lim, figsize=(9,3), nrows=1, ncols=3
+            prob_lower_lim=prob_lower_lim,
+            figsize=(9, 3),
+            nrows=1,
+            ncols=3,
         )
         cp.create_output_stack(
             fname=self.folder + f"/ouputstack_{disk.wavelength}_{disk.resolution}.png",
-            figsize=(6,6), nrows=2, ncols=2
+            figsize=(6, 6),
+            nrows=2,
+            ncols=2,
         )
+        return
+
+    def to_netcdf(self, file_name: str = None):
+        """Method to save the CHIPS object to netCDF files.
+        Expected file formats netCDF.
+
+        Attributes:
+            file_name (str): Name of the file (.nc).
+
+        Returns:
+            Method returns None.
+        """
+        return
+
+    def from_netcdf(self, file_name: str = None):
+        """Method to read the CHIPS object to netCDF files.
+        Expected file formats netCDF.
+
+        Attributes:
+            file_name (str): Name of the file (.nc).
+
+        Returns:
+            Method returns None.
+        """
         return
