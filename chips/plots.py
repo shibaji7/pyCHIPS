@@ -141,11 +141,16 @@ class ImagePalette(object):
         else:
             ax = self.axes[self.ticker]
             self.ticker += 1
-        if axis_off: ax.set_axis_off()
+        if axis_off:
+            ax.set_axis_off()
         return ax
 
     def __circle__(
-        self, ax: matplotlib.axes.Axes, pixel_radius: int, resolution: int, color: str="w"
+        self,
+        ax: matplotlib.axes.Axes,
+        pixel_radius: int,
+        resolution: int,
+        color: str = "w",
     ) -> None:
         """Adding/fetching solar disk circle in the disk maps.
 
@@ -283,11 +288,11 @@ class ImagePalette(object):
                 if p >= prob_lower_lim
             ],
             axis=0,
-        )   
+        )
         stacked[stacked == 0.0] = np.nan
-        
+
         im = ax.imshow(stacked, cmap=cmap, norm=norm, origin="lower")
-        ax.patch.set_facecolor('black')
+        ax.patch.set_facecolor("black")
         if add_color_bar:
             self.__add_colorbar__(ax, im, label="Probability")
         return
