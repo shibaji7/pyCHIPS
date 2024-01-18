@@ -16,15 +16,12 @@ import sys
 import unittest
 
 sys.path.append("../chips/")
-from fetch import SolarDisk, SynopticMap
+from fetch import SolarDisk
 
 
 class TestSolarDisk(unittest.TestCase):
     def test_fetch_193_solar_disk_norm(self):
-        aia = SolarDisk(
-            dt.datetime(2018, 5, 18, 12),
-            193, apply_psf=True
-        )
+        aia = SolarDisk(dt.datetime(2018, 5, 18, 12), 193, apply_psf=True)
         self.assertTrue(hasattr(aia, "raw"))
         self.assertIsNotNone(aia.raw)
         self.assertTrue(hasattr(aia, "normalized"))
@@ -32,10 +29,7 @@ class TestSolarDisk(unittest.TestCase):
         return
 
     def test_fetch_193_solar_disk(self):
-        aia = SolarDisk(
-            dt.datetime(2018, 5, 18, 12),
-            193, norm=False
-        )
+        aia = SolarDisk(dt.datetime(2018, 5, 18, 12), 193, norm=False)
         self.assertTrue(hasattr(aia, "raw"))
         self.assertIsNotNone(aia.raw)
         self.assertFalse(hasattr(aia, "normalized"))

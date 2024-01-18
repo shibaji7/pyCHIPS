@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="pyCHIPS",
-    version="0.2",
+    version="0.3",
     packages=["chips"],
     package_dir={"chips": "chips"},
     package_data={"chips": []},

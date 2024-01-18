@@ -16,12 +16,11 @@ import sys
 import unittest
 
 sys.path.append("../chips/")
-from fetch import SolarDisk, SynopticMap
+from fetch import SynopticMap
 from syn_chips import SynopticChips
 
 
 class TestSolarDisk(unittest.TestCase):
-
     def test_synoptic_map_193(self):
         syn = SynopticMap(dt.datetime(2018, 5, 30, 12))
         chips = SynopticChips(syn)
