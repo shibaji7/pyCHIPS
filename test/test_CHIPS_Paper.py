@@ -27,7 +27,7 @@ from plots import ImagePalette, Annotation
 
 class TestCHIPSPaper(unittest.TestCase):
     def test_run_analysis(self):
-        self.date = dt.datetime(2018, 5, 30, 12)
+        self.date = dt.datetime(2018, 6, 23, 13)
         fname = "tmp/saveobj.pickle"
         if not os.path.exists(fname):
             aia171, aia193, aia211 = (
