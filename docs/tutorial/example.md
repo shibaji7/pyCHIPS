@@ -62,5 +62,5 @@ Upon executing the `run_CHIPS` method, a series of informative summary plots wil
 
 <figure markdown>
 ![Figure 06](../figures/Figure06.png)
-<figcaption>Figure 02: Different CH regions and associated probabilies for four different thresholds.</figcaption>
+<figcaption>Figure 02: Different CH regions and associated probabilies for four different thresholds \[\tau\].</figcaption>
 </figure>
