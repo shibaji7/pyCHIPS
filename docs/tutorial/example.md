@@ -21,9 +21,9 @@ import datetime as dt
 import numpy as np
 
 # Import nessesory pyCHIPS modules
-from fetch import RegisterAIA
-from chips import Chips
-from plots import ImagePalette, Annotation
+from chips.fetch import RegisterAIA
+from chips.plots import Annotation, ImagePalette
+from chips.chips import Chips
 ```
 Load a high-resolution 4K image from the Atmospheric Imaging Assembly (AIA) at the 19.3 nm wavelength into your analysis using the provided Python code. This code register, normalize and [preprocess](https://aiapy.readthedocs.io/en/latest/preparing_data.html) the disk image. Simply load the image, ensuring that the `apply_psf` parameter is set to `true` if you wish to invoke the Point Spread Function (PSF) specific to the AIA. It's crucial to note that enabling the PSF may lead to a substantial increase in time complexity due to the detailed computational processes involved. This code snippet serves as a valuable guide for researchers and developers seeking to integrate AIA imagery, offering flexibility in resolution and the option to apply the PSF for enhanced accuracy in their solar physics analyses. Whether you are an experienced user or new to AIA image processing, this code provides clear instructions for efficient implementation.
 

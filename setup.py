@@ -1,8 +1,14 @@
+# read the contents of your README file
+from pathlib import Path
+
 from setuptools import setup
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="pyCHIPS",
-    version="0.3",
+    version="0.4",
     packages=["chips"],
     package_dir={"chips": "chips"},
     package_data={"chips": []},

@@ -20,17 +20,26 @@ import unittest
 import numpy as np
 from sklearn import mixture
 
-sys.path.append("../chips/")
-from fetch import RegisterAIA
-from plots import Annotation, ImagePalette
+path_appended = False
+if path_appended:
+    sys.path.append("../chips/")
+    from fetch import RegisterAIA
+    from plots import Annotation, ImagePalette
 
-from chips import Chips
+    from chips import Chips
+else:
+    from chips.chips import Chips
+    from chips.fetch import RegisterAIA
+    from chips.plots import Annotation, ImagePalette
 
 
 class TestCHIPSPaper(unittest.TestCase):
     def test_run_analysis(self):
-        self.date = dt.datetime(2018, 6, 23, 13)
         fname = "tmp/saveobj.pickle"
+        if os.path.exists(fname):
+            os.remove(fname)
+        self.date = dt.datetime(2018, 6, 23, 13)
+
         if not os.path.exists(fname):
             aia171, aia193, aia211 = (
                 RegisterAIA(self.date, [171], [4096], apply_psf=False),

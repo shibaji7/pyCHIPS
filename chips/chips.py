@@ -18,8 +18,9 @@ from typing import List
 import cv2
 import numpy as np
 from loguru import logger
-from plots import ChipsPlotter
 from scipy import signal
+
+from chips.plots import ChipsPlotter
 
 
 class Chips(object):
