@@ -8,7 +8,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="pyCHIPS",
-    version="0.4",
+    version="0.4.5",
     packages=["chips"],
     package_dir={"chips": "chips"},
     package_data={"chips": []},
