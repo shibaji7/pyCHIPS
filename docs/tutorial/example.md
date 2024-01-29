@@ -41,7 +41,8 @@ aia193 = RegisterAIA(
 date = dt.datetime(2018, 6, 23, 13)
 aia193 = RegisterAIA(
     date, [193], [4096], 
-    apply_psf=False
+    apply_psf=False,
+    local_file="sunpy/data/aia_lev1_{wavelength}A_{date_str}*.fits",
 )
 ```
 
