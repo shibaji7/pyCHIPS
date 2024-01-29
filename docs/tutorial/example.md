@@ -36,14 +36,14 @@ aia193 = RegisterAIA(
 ```
 
 > Load a high-resolution 4K image from local storage with `Regular Expression`. You can provide the regular expression of the filename (function of wavelength and date) or exact name as shown below, parameter `local_file`: 
-> ```
->   date = dt.datetime(2018, 6, 23, 13)
->   aia193 = RegisterAIA(
->       date, [193], [4096], 
->       apply_psf=False,
->       local_file="sunpy/data/aia_lev1_{wavelength}A_{date_str}*.fits"
->   )
->```
+
+```
+date = dt.datetime(2018, 6, 23, 13)
+aia193 = RegisterAIA(
+    date, [193], [4096], 
+    apply_psf=False
+)
+```
 
 Create a `Chips` object with the following python code and set a `medfilt_kernel` size. Make sure the size is odd. This median filter will be used to filter the regrsited/normalized image. Further it runs the main body of CHIPS algorithm.
 
