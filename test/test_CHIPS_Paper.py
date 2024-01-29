@@ -38,13 +38,31 @@ class TestCHIPSPaper(unittest.TestCase):
         fname = "tmp/saveobj.pickle"
         if os.path.exists(fname):
             os.remove(fname)
-        #self.date = dt.datetime(2018, 5, 11, 13)
+        # self.date = dt.datetime(2018, 5, 11, 13)
         self.date = dt.datetime(2018, 5, 30, 12)
         if not os.path.exists(fname):
             aia171, aia193, aia211 = (
-                RegisterAIA(self.date, [171], [4096], apply_psf=False, local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits"),
-                RegisterAIA(self.date, [193], [4096], apply_psf=False, local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits"),
-                RegisterAIA(self.date, [211], [4096], apply_psf=False, local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits"),
+                RegisterAIA(
+                    self.date,
+                    [171],
+                    [4096],
+                    apply_psf=False,
+                    local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
+                ),
+                RegisterAIA(
+                    self.date,
+                    [193],
+                    [4096],
+                    apply_psf=False,
+                    local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
+                ),
+                RegisterAIA(
+                    self.date,
+                    [211],
+                    [4096],
+                    apply_psf=False,
+                    local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
+                ),
             )
             chips171, chips193, chips211 = (
                 Chips(aia171, medfilt_kernel=11),

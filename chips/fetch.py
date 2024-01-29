@@ -114,11 +114,7 @@ class SolarDisk(object):
         file_format = self.local_file.format(
             wavelength=self.wavelength, date_str=date_str
         )
-        local_files = glob.glob(
-            str(
-                Path.home() / file_format
-            )
-        )
+        local_files = glob.glob(str(Path.home() / file_format))
         logger.info(f"Searching for local file format: {file_format}")
         local_file = local_files[0] if len(local_files) > 0 else None
         return local_file
@@ -287,8 +283,12 @@ class RegisterAIA(object):
             self.datasets[wv] = dict()
             for res in resolutions:
                 self.datasets[wv][res] = SolarDisk(
-                    self.date, wv, res, apply_psf=self.apply_psf, norm=self.norm,
-                    local_file=self.local_file
+                    self.date,
+                    wv,
+                    res,
+                    apply_psf=self.apply_psf,
+                    norm=self.norm,
+                    local_file=self.local_file,
                 )
         return
 
