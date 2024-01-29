@@ -45,6 +45,7 @@ class SolarDisk(object):
         apply_psf (bool): If `true`, conduct deconvololution with a point spread function.
         norm (bool): If `true`, conduct image registrtation and normalization.
         use_gpu (bool): If `true` and `cupy` is installed, do PSF deconvolution on the GPU with `cupy`.
+        local_file (str): Regular expression that captures the local system file.
         desciption (str): Holds description of the '.fits' file.
         raw (sunpy.map.Map): Holds raw solar disk Map.
         psf (sunpy.map.Map): Holds deconvolved solar disk Map.
@@ -60,6 +61,7 @@ class SolarDisk(object):
         apply_psf: bool = False,
         norm: bool = True,
         use_gpu: bool = True,
+        local_file: str = "sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
     ) -> None:
         """Initialize the parameters provided by kwargs."""
         self.date = date
@@ -68,6 +70,7 @@ class SolarDisk(object):
         self.apply_psf = apply_psf
         self.norm = norm
         self.use_gpu = use_gpu
+        self.local_file = local_file
         self.desciption = f"Solar Disk during {date} seeing through {wavelength}A, observing at {resolution} px."
         self.fetch()
         if self.norm:
@@ -108,11 +111,15 @@ class SolarDisk(object):
         """
         logger.info("Searching local files ....")
         date_str = self.date.strftime("%Y_%m_%d")
+        file_format = self.local_file.format(
+            wavelength=self.wavelength, date_str=date_str
+        )
         local_files = glob.glob(
             str(
-                Path.home() / f"sunpy/data/aia_lev1_{self.wavelength}a_{date_str}*.fits"
+                Path.home() / file_format
             )
         )
+        logger.info(f"Searching for local file format: {file_format}")
         local_file = local_files[0] if len(local_files) > 0 else None
         return local_file
 
@@ -146,7 +153,8 @@ class SolarDisk(object):
             )
             logger.info(f"Record found: len({len(q)})")
             logger.info(f"Registering FITS data")
-            self.raw = sunpy.map.Map(Fido.fetch(q[0, 0]))
+            file_serach = Fido.fetch(q[0, 0])
+            self.raw = sunpy.map.Map(file_serach)
         if self.resolution != 4096:
             pass
         if self.apply_psf:
@@ -256,6 +264,7 @@ class RegisterAIA(object):
         resolution (List[int]): List of resolutions of the image to work on [4096].
         apply_psf (bool): If `true`, conduct deconvololution with a point spread function.
         norm (bool): If `true`, conduct image registrtation and normalization.
+        local_file (str): Regular expression that captures the local system file.
     """
 
     def __init__(
@@ -265,18 +274,21 @@ class RegisterAIA(object):
         resolutions: List[int] = [4096],
         apply_psf: bool = False,
         norm: bool = True,
+        local_file: str = "sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
     ) -> None:
         self.wavelengths = wavelengths
         self.date = date
         self.resolutions = resolutions
         self.apply_psf = apply_psf
         self.norm = norm
+        self.local_file = local_file
         self.datasets = dict()
         for wv in wavelengths:
             self.datasets[wv] = dict()
             for res in resolutions:
                 self.datasets[wv][res] = SolarDisk(
-                    self.date, wv, res, apply_psf=self.apply_psf, norm=self.norm
+                    self.date, wv, res, apply_psf=self.apply_psf, norm=self.norm,
+                    local_file=self.local_file
                 )
         return
 
