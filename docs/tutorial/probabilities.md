@@ -30,6 +30,18 @@ Therefore, we deduce that $\tau$, $y_\tau$, and $x_\tau$ can be effectively mode
 
 To show that the integration of a [PDF](https://en.wikipedia.org/wiki/Probability_density_function) results in a uniform distribution, we use the Cumulative Distribution Function ([CDF](https://en.wikipedia.org/wiki/Cumulative_distribution_function)). The CDF is the integral of the PDF.
 
-Let $f_x$ be the PDF of a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)/`RV` `Z` and $F_X$ be the corresponding CDF, $F_X(x) = \int_{-\infty}^x f_x dx$. We understand $F_X$ values lies between [0-1] and monotonically increasing. We define $Z=F_X(X)$, then $F_Z(X) = Porb(F_X(X)\leq x)= Prob(X\leq F^{-1}_X(x))= F_X(F^{-1}_X(x))=x$.
+Let $f_x$ be the PDF of a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)/`RV` `x` and $F_X$ be the corresponding CDF, 
+\begin{equation}
+F_X(x) = \int_{-\infty}^x f_x dx
+\end{equation}
 
-The derivative of $F_Z$ with respect to $x$ is a constant is constant so Z is uniformly distributed with a PDF $\mathcal{U}(0,1)$.
+We understand $F_X$ values lies between [0-1] and monotonically increasing. We define $Z=F_X(X)$, then,
+
+\begin{eqnarray}
+F_Z(X) &=& Porb(F_X(X)\leq x)\\
+F_Z(X) &=& Prob(X\leq F^{-1}_X(x))\\
+F_Z(X) &=& F_X(F^{-1}_X(x))\\
+F_Z(X) &=& x
+\end{eqnarray}
+
+The derivative of $F_Z(X)$ with respect to $x$ is a constant, so Z is uniformly distributed with a PDF  $\mathcal{U}(0,1)$.
