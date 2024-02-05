@@ -25,9 +25,11 @@ class TestCHIPS(unittest.TestCase):
         aia = RegisterAIA(dt.datetime(2018, 5, 30, 12), [193], [4096], apply_psf=False)
         chips = Chips(
             aia,
-            medfilt_kernel=101
+            medfilt_kernel=11
         )
         chips.run_CHIPS()
+        disk = chips.aia.datasets[193][4096]
+        histogram = disk.histogram
         return
 
 
