@@ -45,3 +45,9 @@ F_Z(X) &=& x
 \end{eqnarray}
 
 The derivative of $F_Z(X)$ with respect to $x$ is a constant, so Z is uniformly distributed with a PDF  $\mathcal{U}(0,1)$.
+
+
+#### Can we compare the probabilities[$\theta$], i.e., $\mathcal{F}(I>I_{th},x_{\tau_th})$?
+We can efficiently compare the probabilities, denoted by $\theta$, derived within a single solar image. The reference intensities, labeled as $I_s$, for all the computed $\mathcal{F}(I>I_{th},x_{\tau_th})$ values within a solar image remain constant. This constancy allows for straightforward comparisons of the obtained $\theta$ values against each other.
+
+When comparing $\theta$ values from two distinct solar images, slight variations may arise. This discrepancy stems from the fact that the reference intensities $I_s$ differ from image to image, influenced by solar cycle variations. However, in adherence to our model assumption, where the Sun is considered the source of data and treated as a [Random Value Generator](https://en.wikipedia.org/wiki/Pseudorandom_number_generator), all images and datasets are generated from the Sun. Therefore, from a statistical standpoint, we should be able to compare them effectively, particularly when using the same threshold intensities $I_{th}$, specifically for $\tau$ parameter.
