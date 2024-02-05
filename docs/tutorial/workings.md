@@ -46,7 +46,7 @@ We then estimate the area enclosed by the distribution $Beta(\alpha,\beta)$ and 
 \begin{eqnarray}
 \tau &=&I^S-I_{th}\\
 y_\tau&=&\frac{1}{1+e^{-\tau}}\\
-x_\tau&=&\frac{y_{\tau}}{\int y_{\tau} dy_{\tau}}\\
+x_\tau&=&\frac{y_{\tau}}{\sum y_{\tau}}\\
 Beta(x_\tau|\alpha,\beta)&=&\frac{x_\tau^{\alpha-1}(1-x_\tau)^{\beta-1}}{B(\alpha,\beta)}\\
 \mathcal{F}(I^S>I_{th},x_{\tau_{th}})&=&\int_{x_{\tau_{th}}}^1 Beta(x_\tau|\alpha,\beta)dx_\tau
 \end{eqnarray}
