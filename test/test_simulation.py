@@ -15,16 +15,18 @@ import datetime as dt
 import sys
 import unittest
 
-sys.path.append("../chips/")
-from fetch import RegisterAIA
+from chips.fetch import RegisterAIA
 
-from chips import Chips
+from chips.chips import Chips
 
 
 class TestCHIPS(unittest.TestCase):
     def test_fetch_193_solar_disk_(self):
-        aia = RegisterAIA(dt.datetime(2018, 5, 30, 12), [193], [4096], apply_psf=True)
-        chips = Chips(aia)
+        aia = RegisterAIA(dt.datetime(2018, 5, 30, 12), [193], [4096], apply_psf=False)
+        chips = Chips(
+            aia,
+            medfilt_kernel=101
+        )
         chips.run_CHIPS()
         return
 
