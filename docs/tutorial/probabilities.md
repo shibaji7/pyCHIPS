@@ -13,7 +13,7 @@ and conditions of MIT General Public License.
 
 #### How do we know $x_{\tau}$ is a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)?
 
-We start our journey with the `Sun`, a dynamic celestial entity. By considering the Sun as a source of data, we treat it as a [Random Value Generator](https://en.wikipedia.org/wiki/Pseudorandom_number_generator). The surface processes of the Sun, akin to a [Stochastic Process] (https://en.wikipedia.org/wiki/Stochastic_process), infuse a sense of randomness into any measurement we take of its surface.
+We start our journey with the `Sun`, a dynamic celestial entity. By considering the Sun as a source of data, we treat it as a [Random Value Generator](https://en.wikipedia.org/wiki/Pseudorandom_number_generator). The surface processes of the Sun, akin to a [Stochastic Process](https://en.wikipedia.org/wiki/Stochastic_process), infuse a sense of randomness into any measurement we take of its surface.
 
 As we preprocess solar images, the pixel values on the resulting .fits file transform into a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)/`RV`, ranging from 0 to $\infty$. This RV, resembling an exponential distribution (truncated), such as the `Gamma` distribution, implies that the parameter $\tau$ is also an `RV`.
 
