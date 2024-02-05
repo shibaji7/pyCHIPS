@@ -9,9 +9,17 @@ document.
 This version of the MIT Public License incorporates the terms
 and conditions of MIT General Public License.
 -->
+# Checking CHIPS Assumptions
 
-#### How do we know $x_{\tau}$ is an [Random Variable](https://en.wikipedia.org/wiki/Random_variable)?
-We assume the source of the dataset `The Sun` is a random value generator. The processes in the surface of the Sun can be modelded using a [Stochastic Process](https://en.wikipedia.org/wiki/Stochastic_process). Hence, any measurement of the Sun's surface can be assumed as a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)/`RV`. After preprocessing the solar image, the values of the pixels on `.fits` file rainging between [0-$\infty$), which is an `RV` and can be modeled as any exponetial distribution (truncated), e.g., `Gamma`. Hence, the parameter `\tau` is also an `RV`, this suggests it can also be modeled as any exponetial distribution. Note that, $y_\tau$ is a [Logistic function](https://en.wikipedia.org/wiki/Logistic_function) fit (a [Surjective function](https://en.wikipedia.org/wiki/Surjective_function)) on $\tau$, with values ranging between [0-1]. Hence, $y_\tau$ is also an `RV` and $x_\tau$ is nothing but normalized $y_\tau$, and is an `RV`. Hence $\tau$, $y_\tau$ and $x_\tau$ can be modeled using PDFs of exponetial distribution.
+#### How do we know $x_{\tau}$ is a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)?
+
+We start our journey with the `Sun`, a dynamic celestial entity. By considering the Sun as a source of data, we treat it as a [Random Value Generator](https://en.wikipedia.org/wiki/Pseudorandom_number_generator). The surface processes of the Sun, akin to a [Stochastic Process] (https://en.wikipedia.org/wiki/Stochastic_process), infuse a sense of randomness into any measurement we take of its surface.
+
+As we preprocess solar images, the pixel values on the resulting .fits file transform into a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)/`RV`, ranging from 0 to $\infty$. This RV, resembling an exponential distribution (truncated), such as the `Gamma` distribution, implies that the parameter $\tau$ is also an `RV`.
+
+Enter the [Logistic function](https://en.wikipedia.org/wiki/Logistic_function) $y_\tau$, a [Surjective function](https://en.wikipedia.org/wiki/Surjective_function) fitting onto $\tau$ and producing values in the [0-1] range. This, in turn, makes $y_\tau$ another `RV`. And behold, $x_\tau$ is simply the normalized version of $y_\tau$, maintaining its status as a [Random Variable](https://en.wikipedia.org/wiki/Random_variable).
+
+Therefore, we deduce that $\tau$, $y_\tau$, and $x_\tau$ can be effectively modeled using Probability Density Functions ([PDFs](https://en.wikipedia.org/wiki/Probability_density_function)) of exponential distributions. This foundational understanding assures us that $x_{\tau}$ is not just a static value but a dynamic entity with inherent randomness. 
 
 <figure markdown>
 ![Figure 07](../figures/Figure07.png)
