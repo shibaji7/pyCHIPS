@@ -45,7 +45,8 @@ We then estimate the area enclosed by the distribution $Beta(\alpha,\beta)$ and 
 
 \begin{eqnarray}
 \tau &=&I^S-I_{th}\\
-x_\tau&=&\frac{1}{1+e^{-\tau}}\\
+y_\tau&=&\frac{1}{1+e^{-\tau}}\\
+x_\tau&=&\frac{y_{\tau}}{\int y_{\tau} dy_{\tau}}\\
 Beta(x_\tau|\alpha,\beta)&=&\frac{x_\tau^{\alpha-1}(1-x_\tau)^{\beta-1}}{B(\alpha,\beta)}\\
 \mathcal{F}(I^S>I_{th},x_{\tau_{th}})&=&\int_{x_{\tau_{th}}}^1 Beta(x_\tau|\alpha,\beta)dx_\tau
 \end{eqnarray}
@@ -54,5 +55,10 @@ Beta(x_\tau|\alpha,\beta)&=&\frac{x_\tau^{\alpha-1}(1-x_\tau)^{\beta-1}}{B(\alph
 ![Figure 04](../figures/Figure04.png)
 <figcaption>Figure 04: Final CHIPS output of 19.3 nm 4k '.fits' image at different stages.</figcaption>
 </figure>
+
+Our analytical journey delves into the intricacies of our assumptions, particularly focusing on the $\Beta$ distribution of $x_{\tau}$ and the probability density function $\mathcal{F}(I>I_{th},x_{\tau_th})$. We haveve provided a detailed exploration of these assumptions in a dedicated section [here](probabilities.md), offering transparency and insights into the analytical foundations of the CHIPS. This comprehensive analysis ensures that CHIPS is built on robust assumptions, paving the way for accurate and reliable outcomes in this research. Dive into the details and explore the probabilistic landscape underpinning CHIPS.
+
+Note, we assumed $x_{\tau}$ $\Beta$ distributed and $\mathcal{F}(I>I_{th},x_{\tau_th})$ is also a PDF. [Here](probabilities.md) we describe how we analyised our asumpton on $x_{\tau}$ and $\mathcal{F}(I>I_{th},x_{\tau_th})$.
+
 
 \bibliography
