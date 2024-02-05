@@ -27,3 +27,9 @@ Therefore, we deduce that $\tau$, $y_\tau$, and $x_\tau$ can be effectively mode
 </figure>
 
 #### How do we know $\mathcal{F}(I>I_{th},x_{\tau_th})$ is an [Random Variable](https://en.wikipedia.org/wiki/Random_variable) and can be described using [PDF](https://en.wikipedia.org/wiki/Probability_density_function)?
+
+To show that the integration of a [PDF](https://en.wikipedia.org/wiki/Probability_density_function) results in a uniform distribution, we use the Cumulative Distribution Function ([CDF](https://en.wikipedia.org/wiki/Cumulative_distribution_function)). The CDF is the integral of the PDF.
+
+Let $f_x$ be the PDF of a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)/`RV` `Z` and $F_X$ be the corresponding CDF, $F_X(x) = \int_{-\infty}^x f_x dx$. We understand $F_X$ values lies between [0-1] and monotonically increasing. We define $Z=F_X(X)$, then $F_Z(X) = Porb(F_X(X)\leq x)= Prob(X\leq F^{-1}_X(x))= F_X(F^{-1}_X(x))=x$.
+
+The derivative of $F_Z$ with respect to $x$ is a constant is constant so Z is uniformly distributed with a PDF $\mathcal{U}(0,1)$.
