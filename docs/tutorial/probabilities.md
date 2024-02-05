@@ -23,7 +23,7 @@ Therefore, we deduce that $\tau$, $y_\tau$, and $x_\tau$ can be effectively mode
 
 <figure markdown>
 ![Figure 07](../figures/Figure07.png)
-<figcaption>Figure 01: Example showing PDFs that can fit through (a) $\tau$, (b) $y_\tau$, and (c) $x_\tau$ </figcaption>
+<figcaption>Figure 01: Example showing PDFs that can fit through three parameters discussed in previous paragraph. </figcaption>
 </figure>
 
 #### How do we know $\mathcal{F}(I>I_{th},x_{\tau_th})$ is an [Random Variable](https://en.wikipedia.org/wiki/Random_variable) and can be described using [PDF](https://en.wikipedia.org/wiki/Probability_density_function)?
