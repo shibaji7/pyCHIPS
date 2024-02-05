@@ -31,6 +31,7 @@ Therefore, we deduce that $\tau$, $y_\tau$, and $x_\tau$ can be effectively mode
 To show that the integration of a [PDF](https://en.wikipedia.org/wiki/Probability_density_function) results in a uniform distribution, we use the Cumulative Distribution Function ([CDF](https://en.wikipedia.org/wiki/Cumulative_distribution_function)). The CDF is the integral of the PDF.
 
 Let $f_x$ be the PDF of a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)/`RV` `x` and $F_X$ be the corresponding CDF, 
+
 \begin{equation}
 F_X(x) = \int_{-\infty}^x f_x dx
 \end{equation}
