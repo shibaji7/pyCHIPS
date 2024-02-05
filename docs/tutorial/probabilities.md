@@ -11,7 +11,9 @@ and conditions of MIT General Public License.
 -->
 # Checking CHIPS Assumptions
 
-#### How do we know $x_{\tau}$ is a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)?
+#### Question 1 / Assumption 1
+
+> How do we know $x_{\tau}$ is a [Random Variable](https://en.wikipedia.org/wiki/Random_variable)?
 
 We start our journey with the `Sun`, a dynamic celestial entity. By considering the Sun as a source of data, we treat it as a [Random Value Generator](https://en.wikipedia.org/wiki/Pseudorandom_number_generator). The surface processes of the Sun, akin to a [Stochastic Process](https://en.wikipedia.org/wiki/Stochastic_process), infuse a sense of randomness into any measurement we take of its surface.
 
@@ -26,7 +28,9 @@ Therefore, we deduce that $\tau$, $y_\tau$, and $x_\tau$ can be effectively mode
 <figcaption>Figure 01: Example showing PDFs that can fit through three parameters discussed in previous paragraph. </figcaption>
 </figure>
 
-#### How do we know $\mathcal{F}(I>I_{th},x_{\tau_th})$ is an [Random Variable](https://en.wikipedia.org/wiki/Random_variable) and can be described using [PDF](https://en.wikipedia.org/wiki/Probability_density_function)?
+#### Question 2 / Assumption 2
+
+> How do we know $\mathcal{F}(I>I_{th},x_{\tau_th})$ is an [Random Variable](https://en.wikipedia.org/wiki/Random_variable) and can be described using [PDF](https://en.wikipedia.org/wiki/Probability_density_function)?
 
 To show that the integration of a [PDF](https://en.wikipedia.org/wiki/Probability_density_function) results in a uniform distribution, we use the Cumulative Distribution Function ([CDF](https://en.wikipedia.org/wiki/Cumulative_distribution_function)). The CDF is the integral of the PDF.
 
@@ -48,7 +52,10 @@ F_Z(X) &=& x
 The derivative of $F_Z(X)$ with respect to $x$ is a constant, so Z is uniformly distributed with a PDF  $\mathcal{U}(0,1)$.
 
 
-#### Can we compare the probabilities[$\theta$], i.e., $\mathcal{F}(I>I_{th},x_{\tau_th})$?
+#### Question 3 / Assumption 3
+
+> Can we compare the probabilities[$\theta$], i.e., $\mathcal{F}(I>I_{th},x_{\tau_th})$?
+
 We can efficiently compare the probabilities, denoted by $\theta$, derived within a single solar image. The reference intensities, labeled as $I_s$, for all the computed $\mathcal{F}(I>I_{th},x_{\tau_th})$ values within a solar image remain constant. This constancy allows for straightforward comparisons of the obtained $\theta$ values against each other.
 
 When comparing $\theta$ values from two distinct solar images, slight variations may arise. This discrepancy stems from the fact that the reference intensities $I_s$ differ from image to image, influenced by solar cycle variations. However, in adherence to our model assumption, where the Sun is considered the source of data and treated as a [Random Value Generator](https://en.wikipedia.org/wiki/Pseudorandom_number_generator), all images and datasets are generated from the Sun. Therefore, from a statistical standpoint, we should be able to compare them effectively, particularly when using the same threshold intensities $I_{th}$, specifically for $\tau$ parameter.
