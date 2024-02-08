@@ -26,5 +26,8 @@ and conditions of MIT General Public License.
         - extract_CHs_CHBs
         - calculate_prob
         - plot_diagonestics
+        - clear_run_results
+        - to_netcdf
+        - compute_similarity_measures
       show_root_heading: true
       show_source: false

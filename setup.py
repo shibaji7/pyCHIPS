@@ -24,6 +24,7 @@ setup(
         "loguru",
         "sunpy",
         "aiapy",
+        "netCDF4>=1.6.5",
     ],
     keywords=[
         "python",

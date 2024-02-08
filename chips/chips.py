@@ -13,7 +13,8 @@ __status__ = "Research"
 
 import os
 from argparse import Namespace
-from typing import List
+from typing import List, Dict
+from netCDF4 import Dataset
 
 import cv2
 import numpy as np
@@ -77,17 +78,34 @@ class Chips(object):
         self.folder = self.base_folder + self.aia.date.strftime("%Y.%m.%d")
         os.makedirs(self.folder, exist_ok=True)
         return
+    
+    def clear_run_results(self, disk):
+        """This method clears the model outputs.
+
+        Attributes:
+
+        Returns:
+            Method returns None.
+        """
+        if hasattr(disk, "solar_mask"): delattr(disk, "solar_mask")
+        if hasattr(disk, "solar_filter"): delattr(disk, "solar_filter")
+        if hasattr(disk, "histogram"): delattr(disk, "histogram")
+        if hasattr(disk, "histograms"): delattr(disk, "histograms")
+        if hasattr(disk, "solar_ch_regions"): delattr(disk, "solar_ch_regions")
+        return
 
     def run_CHIPS(
         self,
         wavelength: int = None,
         resolution: int = None,
+        clear_prev_runs: bool = False,
     ) -> None:
         """This method selects the `chips.fetch.SolarDisk`(s) objects and runs the CHIPS algorithm sequentially.
 
         Attributes:
             wavelength (int): Wave length of the disk image [171/193/211].
             resolution (int): Resolution of the image to work on [4096].
+            clear_prev_runs (bool): Clearing the outputs from previou run.
 
         Returns:
             Method returns None.
@@ -98,7 +116,7 @@ class Chips(object):
             ):
                 logger.info(f"Singleton: Running CHIPS for {wavelength}/{resolution}")
                 disk = self.aia.datasets[wavelength][resolution]
-                self.process_CHIPS(disk)
+                self.process_CHIPS(disk, clear_prev_runs)
             else:
                 logger.error(f"No entry for {wavelength} and {resolution}!!!")
         else:
@@ -111,7 +129,7 @@ class Chips(object):
                             f"Multiton: Running CHIPS for {wavelength}/{resolution}"
                         )
                         disk = self.aia.datasets[wavelength][resolution]
-                        self.process_CHIPS(disk)
+                        self.process_CHIPS(disk, clear_prev_runs)
                     else:
                         logger.error(f"No entry for {wavelength} and {resolution}!!!")
         return
@@ -119,15 +137,19 @@ class Chips(object):
     def process_CHIPS(
         self,
         disk,
+        clear_prev_runs
     ) -> None:
         """This method runs the CHIPS algorithm for a selected `chips.fetch.SolarDisk` object.
 
         Attributes:
             disk (chips.fetch.SolarDisk): Solar disk to run CHIPS algorithm.
+            clear_prev_runs (bool): Clearing the outputs from previou run.
 
         Returns:
             Method returns None.
         """
+        if clear_prev_runs:
+            self.clear_run_results(disk)
         self.extract_solar_masks(disk)
         self.run_filters(disk)
         self.extract_histogram(disk)
@@ -408,7 +430,12 @@ class Chips(object):
         )
         return
 
-    def to_netcdf(self, file_name: str = None):
+    def to_netcdf(
+            self, 
+            wavelength: int,
+            resolution: int,
+            file_name: str = None
+        ) -> None:
         """Method to save the CHIPS object to netCDF files.
         Expected file formats netCDF.
 
@@ -418,16 +445,91 @@ class Chips(object):
         Returns:
             Method returns None.
         """
-        return
 
-    def from_netcdf(self, file_name: str = None):
-        """Method to read the CHIPS object to netCDF files.
-        Expected file formats netCDF.
+        def create_dataset(grp, dims, name, dtype, value):
+            ds = grp.createVariable(name, dtype, dims)
+            ds[:] = value
+            return
+        
+        def create_group_with_dims(grp, sub_grp_name, dims):
+            sub_grp = grp.createGroup(sub_grp_name)
+            for dim in dims:
+                sub_grp.createDimension(dim[0], dim[1])
+            return sub_grp
+        
+        disk = self.aia.datasets[wavelength][resolution]
+        file_name = (
+            file_name if file_name else f"{disk.date.strftime('%Y-%m-%d-%H-%M')}_{wavelength}A_{resolution}.nc"
+        )
+        file = self.folder + f"/{file_name}"
+        logger.info(f"Save to file: {file}")
+        nc = Dataset(file, "w", format="NETCDF4")
+        fits = create_group_with_dims(
+            nc, "fits",
+            [("xarcs", resolution), ("yarcs", resolution)]
+        )
+        create_dataset(fits, ("xarcs", "yarcs"), "fitdata","f4", disk.normalized.data)
+        if hasattr(disk, "solar_filter"):
+            filter = create_group_with_dims(
+                nc, "filter",
+                [("xarcs", resolution), ("yarcs", resolution)]
+            )
+            create_dataset(
+                filter, ("xarcs", "yarcs"), "solar_disk",
+                "f4", disk.solar_filter.solar_disk
+            )
+            create_dataset(
+                filter, ("xarcs", "yarcs"), "filt_disk",
+                "f4", disk.solar_filter.filt_disk
+            )
+
+        if hasattr(disk, "solar_ch_regions"):
+            L, keys = (
+                len(disk.solar_ch_regions.__dict__.keys()),
+                list(disk.solar_ch_regions.__dict__.keys())
+            )
+            ch_regions = create_group_with_dims(
+                nc, "ch_regions",
+                [
+                    ("xarcs", resolution), ("yarcs", resolution), 
+                    ("probs", L)
+                ]
+            )
+            data, probs = np.zeros((resolution, resolution, L)), []
+            for i, k in enumerate(keys):
+                region = getattr(disk.solar_ch_regions, str(k))
+                data[:,:,i] = region.map
+                probs.append(region.prob)
+            create_dataset(
+                ch_regions, ("xarcs", "yarcs", "probs"),
+                "ch_regions","f4", data
+            )
+            create_dataset(
+                ch_regions, ("probs"), "probs","f4", 
+                probs
+            )
+        nc.close()
+        return
+    
+    def compute_similarity_measures(self, map: np.ndarray, map0: np.ndarray) -> Dict:
+        """This method compute similarity matrices (cosine,)
 
         Attributes:
-            file_name (str): Name of the file (.nc).
+            map (np.ndarray): An nD(typically 2D) array containing the map for comparison.
+            map0.(np.ndarray): Baseline solar map to compare againts.
 
         Returns:
-            Method returns None.
+            Method returns dictionary of measures.
         """
-        return
+        from sklearn.metrics.pairwise import cosine_similarity
+        measures = {"cosine_sim": np.nan}
+        cosine_sim = [] 
+        for i in range(map.shape[0]):
+            if np.sum(map[i, :]) > 0:
+                a, b = (
+                    np.array([list(map[i, :])]),
+                    np.array([list(map0[i, :])])
+                )
+                cosine_sim.append(cosine_similarity(a,b)[0,0])
+        measures["cosine_sim"] = np.nanmean(cosine_sim)
+        return measures
