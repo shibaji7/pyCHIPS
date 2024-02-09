@@ -440,6 +440,8 @@ class Chips(object):
         Expected file formats netCDF.
 
         Attributes:
+            wavelength (int): Wave length of the disk image [171/193/211].
+            resolution (int): Resolution of the image to work on [4096].
             file_name (str): Name of the file (.nc).
 
         Returns:

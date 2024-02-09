@@ -58,13 +58,12 @@ class TestCHIPS(unittest.TestCase):
         # plot_histograms(h_data)
         #chips.run_CHIPS(clear_prev_runs=True)
         #chips.to_netcdf(193, 4096)
-        disk = chips.aia.datasets[193][4096]
-        map0, map = (
-            getattr(disk.solar_ch_regions, str(18.2434)).map,
-            getattr(disk.solar_ch_regions, str(19.2434)).map
-        )
-        measures = chips.compute_similarity_measures(map, map0)
-        print(measures)
+        # disk = chips.aia.datasets[193][4096]
+        # map0, map = (
+        #     getattr(disk.solar_ch_regions, str(18.2434)).map,
+        #     getattr(disk.solar_ch_regions, str(19.2434)).map
+        # )
+        # measures = chips.compute_similarity_measures(map, map0)
         return
 
 
