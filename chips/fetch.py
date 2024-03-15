@@ -173,6 +173,13 @@ class SolarDisk(object):
         registred = register(updated_point)
         registred = correct_degradation(registred)
         self.normalized = normalize_exposure(registred)
+        self.normalized_data = np.copy(self.normalized.data)
+        logger.info(f"Normalized value range: [{self.normalized_data.max()} <:> {self.normalized_data.min()}]")
+        logger.info(f"Has normalized negative values: [{np.sum(self.normalized_data<0)==0}")
+        if np.sum(self.normalized_data<0) > 0:
+            self.normalized_data -= self.normalized_data.min() 
+            self.normalized_data[self.normalized_data==0] = 0.01 # Issue with 0 values in log10
+            logger.info(f"Rescaled value range: [{self.normalized_data.max()} <:> {self.normalized_data.min()}]")
         self.fetch_solar_parameters()
         return
 
@@ -191,6 +198,9 @@ class SolarDisk(object):
             self.normalized._meta["rsun_obs"],
         )
         self.pixel_radius = int(self.rsun_obs / self.rscale)
+
+        self.log_normalized_data = np.log10(self.normalized_data)
+        logger.info(f"Log value range: [{self.log_normalized_data.max()} <:> {self.log_normalized_data.min()}]")
         return
 
     def plot_disk_images(
@@ -244,10 +254,10 @@ class SolarDisk(object):
                 rotation=90,
             )
         )
-        ip.annotate(annotations)
+        im.annotate(annotations)
         if fname:
-            ip.save(fname)
-        ip.close()
+            im.save(fname)
+        im.close()
         return
 
 
@@ -257,39 +267,149 @@ class RegisterAIA(object):
     Attributes:
         date (datetime.datetime): Datetime of the solar disk '.fits' file.
         wavelengths (List[int]): List of wavelength of the disk image [171/193/211] to be run.
-        resolution (List[int]): List of resolutions of the image to work on [4096].
+        resolution (int): Resolutions of the image to work on 4096 (4k).
         apply_psf (bool): If `true`, conduct deconvololution with a point spread function.
         norm (bool): If `true`, conduct image registrtation and normalization.
         local_file (str): Regular expression that captures the local system file.
+        save_dir (str): Save directory local for dataset (filtered and analyzed).
     """
 
     def __init__(
         self,
         date: dt.datetime,
-        wavelengths: List[int] = [193],
-        resolutions: List[int] = [4096],
+        wavelengths: List[int] = [171, 193, 211],
+        resolution: int = 4096,
         apply_psf: bool = False,
         norm: bool = True,
         local_file: str = "sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
+        save_dir: str = "tmp/",
     ) -> None:
         self.wavelengths = wavelengths
         self.date = date
-        self.resolutions = resolutions
+        self.resolution = resolution
         self.apply_psf = apply_psf
         self.norm = norm
         self.local_file = local_file
+        self.save_dir = save_dir + f"chips_output/{date.strftime('%Y-%m-%d-%H-%M')}/"
+        os.makedirs(self.save_dir, exist_ok=True)
         self.datasets = dict()
         for wv in wavelengths:
             self.datasets[wv] = dict()
-            for res in resolutions:
-                self.datasets[wv][res] = SolarDisk(
-                    self.date,
-                    wv,
-                    res,
-                    apply_psf=self.apply_psf,
-                    norm=self.norm,
-                    local_file=self.local_file,
+            self.datasets[wv][self.resolution] = SolarDisk(
+                self.date,
+                wv,
+                self.resolution,
+                apply_psf=self.apply_psf,
+                norm=self.norm,
+                local_file=self.local_file,
+            )
+        return
+    
+    def plot_scatter_maps(
+            self,
+            figsize: Tuple[int] = (6, 9),
+            dpi: int = 240,
+            nrows: int = 3,
+            ncols: int = 2,
+            fname: str = None,
+            scale: str = "linear",
+        ) -> None:
+        """Plotting method to generate scatter
+
+        Arguments:
+            figsize: Size of the figure.
+            dpi: Figure DPI.
+            nrows: Number of rows in the figure.
+            ncols: Number of columns in the figure.
+            fname: File name of the figure (expected file format: png, bmp, pdf, jpg).
+
+        Returns:
+            Method returns None
+        """
+        from plots import Annotation, ImagePalette
+
+        ip = ImagePalette(
+            figsize=figsize,
+            dpi=dpi,
+            nrows=nrows,
+            ncols=ncols,
+        )
+        
+        disk193, disk171, disk211 = (
+            self.datasets[193][self.resolution],
+            self.datasets[171][self.resolution],
+            self.datasets[211][self.resolution]
+        )
+        x, y, z = (
+            disk193.log_normalized_data.ravel(),
+            disk171.log_normalized_data.ravel(),
+            disk211.log_normalized_data.ravel(),
+        ) if scale=="log" else \
+                (
+                    disk193.normalized_data.ravel(),
+                    disk171.normalized_data.ravel(),
+                    disk211.normalized_data.ravel(), 
                 )
+        if scale=="log":
+            import pandas as pd
+            data = pd.DataFrame()
+            data["x"], data["y"], data["z"] = (x, y, z)
+            data = data.dropna()
+            x, y, z = np.array(data.x), np.array(data.y), np.array(data.z)
+
+        import matplotlib
+        ax = ip.__axis__(axis_off=False)
+        ax.scatter(x, y, color="k", s=0.01)
+        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
+        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
+        ax.set_ylabel(r"$\log_{10}(I_{171})$" if scale=="log" else r"$I_{171}$")
+        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale=="log" else r"$I_{193}$")
+
+        ax = ip.__axis__(axis_off=False)
+        H, xedge, yedge, _ = ax.hist2d(x, y, bins=1000, norm=matplotlib.colors.LogNorm(), density=True)
+        valleys = find_valleys(H)
+        #print(valleys)
+        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
+        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
+        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale=="log" else r"$I_{193}$")
+        ax.plot(valleys[0], valleys[1], ls="-", lw=0.8, color="r")
+
+        ax = ip.__axis__(axis_off=False)
+        ax.scatter(x, z, color="k", s=0.01)
+        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
+        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
+        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale=="log" else r"$I_{193}$")
+        ax.set_ylabel(r"$\log_{10}(I_{211})$" if scale=="log" else r"$I_{211}$")
+
+        ax = ip.__axis__(axis_off=False)
+        ax.hist2d(x, z, bins=1000, norm=matplotlib.colors.LogNorm(), density=True)
+        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
+        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
+        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale=="log" else r"$I_{193}$")
+
+        ax = ip.__axis__(axis_off=False)
+        ax.scatter(z, y, color="k", s=0.01)
+        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
+        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
+        ax.set_xlabel(r"$\log_{10}(I_{211})$" if scale=="log" else r"$I_{211}$")
+        ax.set_ylabel(r"$\log_{10}(I_{171})$" if scale=="log" else r"$I_{171}$")
+
+        ax = ip.__axis__(axis_off=False)
+        ax.hist2d(z, y, bins=1000, norm=matplotlib.colors.LogNorm(), density=True)
+        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
+        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
+        ax.set_xlabel(r"$\log_{10}(I_{211})$" if scale=="log" else r"$I_{211}$")
+
+        annotations = []
+        annotations.append(
+            Annotation(
+                self.date.strftime("%Y-%m-%d %H:%M"), 0.05, 1.05, "left", "center"
+            )
+        )
+        ip.annotate(annotations)
+        fname = fname if fname else self.save_dir + "segmentation_scatter.png"
+        ip.save(fname, hspace=0.1, wspace=0.1)
+        ip.close()
         return
 
 
@@ -384,3 +504,11 @@ class SynopticMap(object):
             Method returns a `object` if available
         """
         return getattr(self, key)
+
+def find_valleys(arr, size=11):
+    from scipy.ndimage import minimum_filter
+    # Apply minimum filter to find local minima
+    min_filtered = minimum_filter(arr, size=size)
+    # Compare original array with filtered array to find local minima
+    valleys = np.where(arr == min_filtered)
+    return list(zip(valleys[0], valleys[1]))

@@ -15,9 +15,12 @@ import datetime as dt
 import numpy as np
 import unittest
 
-from chips.fetch import RegisterAIA
+# from chips.fetch import RegisterAIA
 from chips.plots import Annotation, ImagePalette
-from chips.chips import Chips
+# from chips.chips import Chips
+import sys
+sys.path.append("../chips/")
+from fetch import RegisterAIA
 
 def plot_histograms(hist0):
     import scipy.stats as stats
@@ -46,12 +49,13 @@ def plot_histograms(hist0):
 
 class TestCHIPS(unittest.TestCase):
     def test_fetch_193_solar_disk_(self):
-        aia = RegisterAIA(dt.datetime(2018, 5, 30, 12), [193], [4096], apply_psf=False)
-        chips = Chips(
-            aia,
-            medfilt_kernel=11
-        )
-        chips.run_CHIPS()
+        aia = RegisterAIA(dt.datetime(2016, 10, 31, 12), apply_psf=False)
+        aia.plot_scatter_maps()
+        # chips = Chips(
+        #     aia,
+        #     medfilt_kernel=11
+        # )
+        # chips.run_CHIPS()
         # disk = chips.aia.datasets[193][4096]
         # h_data = disk.solar_filter.filt_disk * disk.solar_mask.n_mask
         # h_data = h_data.ravel()[~np.isnan(h_data.ravel())]

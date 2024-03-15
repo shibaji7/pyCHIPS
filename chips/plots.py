@@ -113,17 +113,26 @@ class ImagePalette(object):
         plt.close("all")
         return
 
-    def save(self, fname: str) -> None:
+    def save(
+            self, 
+            fname: str,
+            hspace: float = 0.01, 
+            wspace: float = 0.01,
+            bbox_inches: str = "tight",
+        ) -> None:
         """Methods to save the image into local system.
 
         Arguments:
             fname (str): File name to save the image (expected file formats png, bmp, jpg, pdf, etc).
+            hspace (float): Subplot adjust height space.
+            wspace (float): Subplot adjust width space.
+            bbox_inches (str): Figure axis boxes.
 
         Returns:
             Method returns None.
         """
-        self.fig.subplots_adjust(hspace=0.01, wspace=0.01)
-        self.fig.savefig(fname, bbox_inches="tight")
+        self.fig.subplots_adjust(hspace=hspace, wspace=wspace)
+        self.fig.savefig(fname, bbox_inches=bbox_inches)
         return
 
     def __axis__(self, ticker: int = None, axis_off: bool = True) -> None:
@@ -392,17 +401,23 @@ class ImagePalette(object):
         self.__circle__(ax, pixel_radius, resolution)
         return
 
-    def annotate(self, annotations: List[Annotation], ticker: int = 0) -> None:
+    def annotate(
+            self, 
+            annotations: List[Annotation], 
+            ticker: int = 0, 
+            axis_off: bool = False
+        ) -> None:
         """Method to add text annotations.
 
         Arguments:
             annotations (List[chips.plots.Annotation]): List of annotations.
             ticker (int): Axis number to put all the annotations.
+            axis_off (bool): Off the axis.
 
         Returns:
             Method returns None.
         """
-        ax = self.__axis__(ticker)
+        ax = self.__axis__(ticker, axis_off=axis_off)
         for a in annotations:
             ax.text(
                 a.xloc,
