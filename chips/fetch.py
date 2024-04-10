@@ -174,12 +174,20 @@ class SolarDisk(object):
         registred = correct_degradation(registred)
         self.normalized = normalize_exposure(registred)
         self.normalized_data = np.copy(self.normalized.data)
-        logger.info(f"Normalized value range: [{self.normalized_data.max()} <:> {self.normalized_data.min()}]")
-        logger.info(f"Has normalized negative values: [{np.sum(self.normalized_data<0)==0}")
-        if np.sum(self.normalized_data<0) > 0:
-            self.normalized_data -= self.normalized_data.min() 
-            self.normalized_data[self.normalized_data==0] = 0.01 # Issue with 0 values in log10
-            logger.info(f"Rescaled value range: [{self.normalized_data.max()} <:> {self.normalized_data.min()}]")
+        logger.info(
+            f"Normalized value range: [{self.normalized_data.max()} <:> {self.normalized_data.min()}]"
+        )
+        logger.info(
+            f"Has normalized negative values: [{np.sum(self.normalized_data<0)==0}"
+        )
+        if np.sum(self.normalized_data < 0) > 0:
+            self.normalized_data -= self.normalized_data.min()
+            self.normalized_data[
+                self.normalized_data == 0
+            ] = 0.01  # Issue with 0 values in log10
+            logger.info(
+                f"Rescaled value range: [{self.normalized_data.max()} <:> {self.normalized_data.min()}]"
+            )
         self.fetch_solar_parameters()
         return
 
@@ -200,7 +208,9 @@ class SolarDisk(object):
         self.pixel_radius = int(self.rsun_obs / self.rscale)
 
         self.log_normalized_data = np.log10(self.normalized_data)
-        logger.info(f"Log value range: [{self.log_normalized_data.max()} <:> {self.log_normalized_data.min()}]")
+        logger.info(
+            f"Log value range: [{self.log_normalized_data.max()} <:> {self.log_normalized_data.min()}]"
+        )
         return
 
     def plot_disk_images(
@@ -304,16 +314,16 @@ class RegisterAIA(object):
                 local_file=self.local_file,
             )
         return
-    
+
     def plot_scatter_maps(
-            self,
-            figsize: Tuple[int] = (6, 9),
-            dpi: int = 240,
-            nrows: int = 3,
-            ncols: int = 2,
-            fname: str = None,
-            scale: str = "linear",
-        ) -> None:
+        self,
+        figsize: Tuple[int] = (6, 9),
+        dpi: int = 240,
+        nrows: int = 3,
+        ncols: int = 2,
+        fname: str = None,
+        scale: str = "linear",
+    ) -> None:
         """Plotting method to generate scatter
 
         Arguments:
@@ -334,71 +344,78 @@ class RegisterAIA(object):
             nrows=nrows,
             ncols=ncols,
         )
-        
+
         disk193, disk171, disk211 = (
             self.datasets[193][self.resolution],
             self.datasets[171][self.resolution],
-            self.datasets[211][self.resolution]
+            self.datasets[211][self.resolution],
         )
         x, y, z = (
-            disk193.log_normalized_data.ravel(),
-            disk171.log_normalized_data.ravel(),
-            disk211.log_normalized_data.ravel(),
-        ) if scale=="log" else \
-                (
-                    disk193.normalized_data.ravel(),
-                    disk171.normalized_data.ravel(),
-                    disk211.normalized_data.ravel(), 
-                )
-        if scale=="log":
+            (
+                disk193.log_normalized_data.ravel(),
+                disk171.log_normalized_data.ravel(),
+                disk211.log_normalized_data.ravel(),
+            )
+            if scale == "log"
+            else (
+                disk193.normalized_data.ravel(),
+                disk171.normalized_data.ravel(),
+                disk211.normalized_data.ravel(),
+            )
+        )
+        if scale == "log":
             import pandas as pd
+
             data = pd.DataFrame()
             data["x"], data["y"], data["z"] = (x, y, z)
             data = data.dropna()
             x, y, z = np.array(data.x), np.array(data.y), np.array(data.z)
 
         import matplotlib
-        ax = ip.__axis__(axis_off=False)
-        ax.scatter(x, y, color="k", s=0.01)
-        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
-        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
-        ax.set_ylabel(r"$\log_{10}(I_{171})$" if scale=="log" else r"$I_{171}$")
-        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale=="log" else r"$I_{193}$")
 
         ax = ip.__axis__(axis_off=False)
-        H, xedge, yedge, _ = ax.hist2d(x, y, bins=1000, norm=matplotlib.colors.LogNorm(), density=True)
+        ax.scatter(x, y, color="k", s=0.01)
+        ax.set_xlim([0, 2] if scale == "log" else [0, 300])
+        ax.set_ylim([0, 2] if scale == "log" else [0, 300])
+        ax.set_ylabel(r"$\log_{10}(I_{171})$" if scale == "log" else r"$I_{171}$")
+        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale == "log" else r"$I_{193}$")
+
+        ax = ip.__axis__(axis_off=False)
+        H, xedge, yedge, _ = ax.hist2d(
+            x, y, bins=1000, norm=matplotlib.colors.LogNorm(), density=True
+        )
         valleys = find_valleys(H)
-        #print(valleys)
-        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
-        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
-        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale=="log" else r"$I_{193}$")
+        # print(valleys)
+        ax.set_xlim([0, 2] if scale == "log" else [0, 300])
+        ax.set_ylim([0, 2] if scale == "log" else [0, 300])
+        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale == "log" else r"$I_{193}$")
         ax.plot(valleys[0], valleys[1], ls="-", lw=0.8, color="r")
 
         ax = ip.__axis__(axis_off=False)
         ax.scatter(x, z, color="k", s=0.01)
-        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
-        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
-        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale=="log" else r"$I_{193}$")
-        ax.set_ylabel(r"$\log_{10}(I_{211})$" if scale=="log" else r"$I_{211}$")
+        ax.set_xlim([0, 2] if scale == "log" else [0, 300])
+        ax.set_ylim([0, 2] if scale == "log" else [0, 300])
+        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale == "log" else r"$I_{193}$")
+        ax.set_ylabel(r"$\log_{10}(I_{211})$" if scale == "log" else r"$I_{211}$")
 
         ax = ip.__axis__(axis_off=False)
         ax.hist2d(x, z, bins=1000, norm=matplotlib.colors.LogNorm(), density=True)
-        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
-        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
-        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale=="log" else r"$I_{193}$")
+        ax.set_xlim([0, 2] if scale == "log" else [0, 300])
+        ax.set_ylim([0, 2] if scale == "log" else [0, 300])
+        ax.set_xlabel(r"$\log_{10}(I_{193})$" if scale == "log" else r"$I_{193}$")
 
         ax = ip.__axis__(axis_off=False)
         ax.scatter(z, y, color="k", s=0.01)
-        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
-        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
-        ax.set_xlabel(r"$\log_{10}(I_{211})$" if scale=="log" else r"$I_{211}$")
-        ax.set_ylabel(r"$\log_{10}(I_{171})$" if scale=="log" else r"$I_{171}$")
+        ax.set_xlim([0, 2] if scale == "log" else [0, 300])
+        ax.set_ylim([0, 2] if scale == "log" else [0, 300])
+        ax.set_xlabel(r"$\log_{10}(I_{211})$" if scale == "log" else r"$I_{211}$")
+        ax.set_ylabel(r"$\log_{10}(I_{171})$" if scale == "log" else r"$I_{171}$")
 
         ax = ip.__axis__(axis_off=False)
         ax.hist2d(z, y, bins=1000, norm=matplotlib.colors.LogNorm(), density=True)
-        ax.set_xlim([0, 2] if scale=="log" else [0, 300])
-        ax.set_ylim([0, 2] if scale=="log" else [0, 300])
-        ax.set_xlabel(r"$\log_{10}(I_{211})$" if scale=="log" else r"$I_{211}$")
+        ax.set_xlim([0, 2] if scale == "log" else [0, 300])
+        ax.set_ylim([0, 2] if scale == "log" else [0, 300])
+        ax.set_xlabel(r"$\log_{10}(I_{211})$" if scale == "log" else r"$I_{211}$")
 
         annotations = []
         annotations.append(
@@ -505,8 +522,10 @@ class SynopticMap(object):
         """
         return getattr(self, key)
 
+
 def find_valleys(arr, size=11):
     from scipy.ndimage import minimum_filter
+
     # Apply minimum filter to find local minima
     min_filtered = minimum_filter(arr, size=size)
     # Compare original array with filtered array to find local minima

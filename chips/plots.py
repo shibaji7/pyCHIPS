@@ -114,12 +114,12 @@ class ImagePalette(object):
         return
 
     def save(
-            self, 
-            fname: str,
-            hspace: float = 0.01, 
-            wspace: float = 0.01,
-            bbox_inches: str = "tight",
-        ) -> None:
+        self,
+        fname: str,
+        hspace: float = 0.01,
+        wspace: float = 0.01,
+        bbox_inches: str = "tight",
+    ) -> None:
         """Methods to save the image into local system.
 
         Arguments:
@@ -402,11 +402,8 @@ class ImagePalette(object):
         return
 
     def annotate(
-            self, 
-            annotations: List[Annotation], 
-            ticker: int = 0, 
-            axis_off: bool = False
-        ) -> None:
+        self, annotations: List[Annotation], ticker: int = 0, axis_off: bool = False
+    ) -> None:
         """Method to add text annotations.
 
         Arguments:
@@ -540,6 +537,20 @@ class ImagePalette(object):
             )
         return
 
+    def write_parameter_details(self, text, xloc, yloc):
+        """Method to write parameter details on top of the figure.
+
+        Arguments:
+            text (str): String text to write.
+            xloc (float): Floating point relative text location along x-axis
+            yloc (float): Floating point relative text location along y-axis
+
+        Returns:
+            Method returns None.
+        """
+        self.fig.suptitle(text, y=yloc, x=xloc);
+        return
+
 
 class ChipsPlotter(object):
     """An object class that holds the summary plots.
@@ -550,6 +561,7 @@ class ChipsPlotter(object):
         dpi (int): Dots per linear inch.
         nrows (int): Number of axis rows in a figure palete.
         ncols (int): Number of axis colums in a figure palete.
+        parameter_details (dict): Parameters containing xloc, yloc, and text body for figure
     """
 
     def __init__(
@@ -559,6 +571,7 @@ class ChipsPlotter(object):
         dpi: int = 240,
         nrows: int = 2,
         ncols: int = 2,
+        parameter_details: dict = {},
     ):
         """Initialization method."""
         self.disk = disk
@@ -566,6 +579,7 @@ class ChipsPlotter(object):
         self.dpi = dpi
         self.nrows = nrows
         self.ncols = ncols
+        self.parameter_details = parameter_details
         return
 
     def create_diagonestics_plots(
@@ -631,6 +645,12 @@ class ChipsPlotter(object):
             )
         )
         ip.annotate(annotations)
+        if len(self.parameter_details.keys()) > 0:
+            ip.write_parameter_details(
+                self.parameter_details["text"],
+                self.parameter_details["xloc"],
+                self.parameter_details["yloc"]
+            )
         if fname:
             ip.save(fname)
         ip.close()
@@ -683,6 +703,12 @@ class ChipsPlotter(object):
             )
         )
         ip.annotate(annotations)
+        if len(self.parameter_details.keys()) > 0:
+            ip.write_parameter_details(
+                self.parameter_details["text"],
+                self.parameter_details["xloc"],
+                self.parameter_details["yloc"]
+            )
         if fname:
             ip.save(fname)
         ip.close()
