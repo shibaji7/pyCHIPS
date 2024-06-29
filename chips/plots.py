@@ -19,6 +19,7 @@ import numpy as np
 import sunpy.map
 import sunpy.visualization.colormaps as cm
 from loguru import logger
+import cv2
 
 
 class Annotation(object):
@@ -305,6 +306,59 @@ class ImagePalette(object):
         if add_color_bar:
             self.__add_colorbar__(ax, im, label="Probability")
         return
+    
+    def ovearlay_localized_contours(
+        self,
+        regions: List[dict],
+        prob_lower_lim: float = 0,
+        add_color_bar: bool = True,
+        cmap: str = "Spectral_r",
+        ticker: int = None,
+        convert_bgc_black: bool = False,
+        resolution: int = 4096,
+    ) -> None:
+        """Overlay the identified CH regions on top of the Disk maps.
+
+        Arguments:
+            regions (List[dict]): List of dictonary holding all the information of identified CH regions.
+            prob_lower_lim (float): Minimum limit of the color bar.
+            add_color_bar (bool): If `true` plot the probability colorbar on right.
+            cmap (str): Color map in string - refer `matplotlib` for details.
+            ticker (int): Axis ticker.
+            convert_bgc_black (bool): Convert BGC color black.
+
+        Returns:
+            Method returns None.
+        """
+        ticker = ticker if ticker else self.ticker - 1
+        ax = self.__axis__(ticker)
+        keys = list(regions.__dict__.keys())
+        limits, probs = (
+            np.array([regions.__dict__[key].lim for key in keys]),
+            np.array([regions.__dict__[key].prob for key in keys]),
+        )
+        n_probs = (probs - probs.min()) / (probs.max() - probs.min())
+        logger.info(f"Total regions plotted with seperators {len(keys)}")
+        norm = matplotlib.colors.Normalize(vmin=prob_lower_lim, vmax=1.0)
+        cmap = matplotlib.cm.get_cmap(cmap)
+        img = np.zeros((resolution, resolution))
+        for key, p in zip(keys, n_probs):
+            contours, hierarchy = (
+                regions.__dict__[key].contours,
+                regions.__dict__[key].hierarchy
+            )
+            color = cmap(p)
+            for component in zip(contours, hierarchy):
+                cc, ch = (component[0], component[1])
+                if ch[3] < 0:
+                    ax.plot(cc[:,0,0], cc[:,0,1], color=color, lw=0.05)
+        ax.patch.set_facecolor("black")
+        if add_color_bar:
+            cpos = [1.04, 0.1, 0.025, 0.8]
+            cax = ax.inset_axes(cpos, transform=ax.transAxes)
+            cb  = matplotlib.colorbar.ColorbarBase(ax=cax, cmap=cmap, values=sorted([0, 0.2, 0.4, 0.6, 0.8, 1]))
+            cb.set_label("Probability")
+        return
 
     def __add_colorbar__(
         self,
@@ -330,6 +384,56 @@ class ImagePalette(object):
         cax = ax.inset_axes(cpos, transform=ax.transAxes)
         cb = self.fig.colorbar(im, ax=ax, cax=cax)
         cb.set_label(label)
+        return
+    
+    def draw_binary_localized_contours(
+        self,
+        regions: List[dict],
+        pixel_radius: int,
+        resolution: int = 4096,
+    ):
+        """Method to add binary CH region maps.
+
+        Arguments:
+            regions (List[dict]): List of dictonary holding all the information of identified CH regions.
+            pixel_radius (int): Radious of the solar disk.
+            resolution (int): Image resolution (typically 4k).
+
+        Returns:
+            Method returns None.
+        """
+        keys = list(regions.__dict__.keys())
+        limits, probs = (
+            np.array([regions.__dict__[key].lim for key in keys]),
+            np.array([regions.__dict__[key].prob for key in keys]),
+        )
+        n_probs = (probs - probs.min()) / (probs.max() - probs.min())
+        fig_num = len(self.axes)
+        total_num_regions = len(keys)
+        logger.info(
+            f"Total regions plotted with seperators {len(keys)}, but will be plotted {fig_num}"
+        )
+        keys = keys[:: int(total_num_regions / fig_num)][: len(self.axes)]
+        for key, p in zip(keys, n_probs):
+            contours, hierarchy = (
+                regions.__dict__[key].contours,
+                regions.__dict__[key].hierarchy
+            )
+            txt = r"$\tau=$%s" % key + "\n" + r"$\theta=%.3f$" % p
+            img = np.zeros((resolution, resolution))
+            ax = self.__axis__(None)
+            cv2.drawContours(img, contours, -1, (255,255,255), 1)
+            ax.imshow(img, cmap="gray", vmax=1, vmin=0, origin="lower")
+            ax.text(
+                0.05,
+                0.9,
+                txt,
+                ha="left",
+                va="center",
+                transform=ax.transAxes,
+                fontdict={"color": "w"},
+            )
+            self.__circle__(ax, pixel_radius, resolution)
         return
 
     def plot_binary_localized_maps(
@@ -362,7 +466,7 @@ class ImagePalette(object):
         keys = keys[:: int(total_num_regions / fig_num)][: len(self.axes)]
         for key, p in zip(keys, n_probs):
             map = regions.__dict__[key].map
-            txt = r"$\tau=$%s" % key + "\n" + r"$\mathcal{p}=%.3f$" % p
+            txt = r"$\tau=$%s" % key + "\n" + r"$\theta=%.3f$" % p
             self.plot_binary_localized_map(map, pixel_radius, resolution, None, txt)
         return
 
@@ -525,7 +629,7 @@ class ImagePalette(object):
             ax = self.__axis__()
             map = regions.__dict__[key].map
             ax.imshow(map, cmap="gray", vmax=1, vmin=0, origin="lower")
-            txt = r"$\tau=$%s" % key + "\n" + r"$\mathcal{p}=%.3f$" % p
+            txt = r"$\tau=$%s" % key + "\n" + r"$\theta=%.3f$" % p
             ax.text(
                 0.05,
                 0.9,
@@ -590,6 +694,7 @@ class ChipsPlotter(object):
         nrows: int = None,
         ncols: int = None,
         prob_lower_lim: float = 0.8,
+        solid_fill: bool = True,
     ) -> None:
         """Method to create diagonestics plots showing different steps of CHIPS.
 
@@ -600,6 +705,7 @@ class ChipsPlotter(object):
             nrows (int): Number of axis rows in a figure palete.
             ncols (int): Number of axis colums in a figure palete.
             prob_lower_lim (float): Minimum limit of the color bar.
+            solid_fill (bool): Create solid filled graph or contours.
 
         Returns:
             Method returns None.
@@ -625,9 +731,14 @@ class ChipsPlotter(object):
             pixel_radius=self.disk.pixel_radius,
             resolution=self.disk.resolution,
         )
-        ip.ovearlay_localized_regions(
-            self.disk.solar_ch_regions, prob_lower_lim=prob_lower_lim
-        )
+        if solid_fill:
+            ip.ovearlay_localized_regions(
+                self.disk.solar_ch_regions, prob_lower_lim=prob_lower_lim
+            )
+        else:
+            ip.ovearlay_localized_contours(
+                self.disk.solar_ch_regions, prob_lower_lim=prob_lower_lim
+            )
         annotations = []
         annotations.append(
             Annotation(
@@ -663,6 +774,7 @@ class ChipsPlotter(object):
         dpi: int = None,
         nrows: int = None,
         ncols: int = None,
+        solid_fill: bool = True,
     ) -> None:
         """Method to create stack plots showing different binary CH regional plots identified by CHIPS.
 
@@ -672,6 +784,7 @@ class ChipsPlotter(object):
             dpi (int): Dots per linear inch.
             nrows (int): Number of axis rows in a figure palete.
             ncols (int): Number of axis colums in a figure palete.
+            solid_fill (bool): Create solid filled graph or contours
 
         Returns:
             Method returns None.
@@ -681,11 +794,18 @@ class ChipsPlotter(object):
         nrows = nrows if nrows else self.nrows
         ncols = ncols if ncols else self.ncols
         ip = ImagePalette(figsize, dpi, nrows, ncols)
-        ip.plot_binary_localized_maps(
-            self.disk.solar_ch_regions,
-            self.disk.pixel_radius,
-            self.disk.resolution,
-        )
+        if solid_fill:
+            ip.plot_binary_localized_maps(
+                self.disk.solar_ch_regions,
+                self.disk.pixel_radius,
+                self.disk.resolution,
+            )
+        else:
+            ip.draw_binary_localized_contours(
+                self.disk.solar_ch_regions,
+                self.disk.pixel_radius,
+                self.disk.resolution,
+            )
         annotations = []
         annotations.append(
             Annotation(

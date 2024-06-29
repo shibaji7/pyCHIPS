@@ -49,11 +49,12 @@ def plot_histograms(hist0):
 
 class TestCHIPS(unittest.TestCase):
     def test_fetch_193_solar_disk_(self):
-        aia = RegisterAIA(dt.datetime(2016, 10, 31, 12), wavelengths=[193], apply_psf=False)
+        aia = RegisterAIA(dt.datetime(2018, 5, 30, 12), wavelengths=[193], apply_psf=False)
         #aia.plot_scatter_maps()
         chips = Chips(
             aia,
-            medfilt_kernel=11
+            medfilt_kernel=51,
+            h_bins=500
         )
         chips.run_CHIPS()
         # disk = chips.aia.datasets[193][4096]

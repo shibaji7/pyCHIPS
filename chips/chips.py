@@ -38,20 +38,22 @@ class Chips(object):
         hist_ysplit (int): Needed to compute thresholds by splitted image (number of splitted along the image height).
         threshold_range (List[float]): List of thresholds from `h_thresh` to run CHIPS.
         porb_threshold (int): This is $x_{\tau}$.
+        area_threshold (float): Percentage (0-1) area thresholds to remove small structures.
     """
 
     def __init__(
         self,
         aia,
         base_folder: str = "tmp/chips_dataset/",
-        medfilt_kernel: int = 3,
-        h_bins: int = 5000,
+        medfilt_kernel: int = 51,
+        h_bins: int = 500,
         h_thresh: float = None,
         ht_peak_ratio: int = 5,
         hist_xsplit: int = 2,
         hist_ysplit: int = 2,
         threshold_range: List[float] = [0, 20],
         porb_threshold: float = 0.8,
+        area_threshold: float = 1e-3,
     ) -> None:
         """Initialization method"""
         self.aia = aia
@@ -64,6 +66,7 @@ class Chips(object):
         self.hist_ysplit = hist_ysplit
         self.threshold_range = threshold_range
         self.porb_threshold = porb_threshold
+        self.area_threshold = area_threshold
         self.get_base_folder()
         return
 
@@ -159,7 +162,7 @@ class Chips(object):
         self.extract_CHs_CHBs(disk)
         self.plot_diagonestics(disk)
         return
-
+    
     def extract_solar_masks(self, disk) -> None:
         """This method extract the solar disk mask, using method described in this [Section](../../tutorial/workings/).
 
@@ -172,6 +175,7 @@ class Chips(object):
         logger.info(f"Create solar mask for {disk.wavelength}/{disk.resolution}")
         if not hasattr(disk, "solar_mask"):
             n_mask = np.zeros_like(disk.raw.data) * np.nan
+            self.disk_area = np.pi * disk.pixel_radius**2
             cv2.circle(
                 n_mask,
                 (int(disk.resolution / 2), int(disk.resolution / 2)),
@@ -363,17 +367,58 @@ class Chips(object):
                     tmp_data[tmp_data == -1] = 1
                     tmp_data[np.isnan(tmp_data)] = 0
                     p = self.calculate_prob(np.copy(data).ravel(), [lim, limit_0])
+                    ##############################################################
+                    # Calculate region by CV2 find contour function
+                    ##############################################################
+                    contours, hierarchy = cv2.findContours(
+                        tmp_data.astype(np.uint8), cv2.RETR_TREE, 
+                        cv2.CHAIN_APPROX_SIMPLE
+                    )
+                    contours, hierarchy, dxmap = self.clean_small_scale_structures(
+                        contours, hierarchy,
+                        np.zeros_like(tmp_data)
+                    )
                     dtmp_map[str(lim)] = Namespace(
                         **{
                             "lim": lim,
                             "limit_0": limit_0,
                             "prob": p,
-                            "map": np.copy(tmp_data),
+                            "map": dxmap,
+                            "contours": contours,
+                            "hierarchy": hierarchy,
+                            "contour_ids": [f"CH_{ix}" for ix in range(len(contours))],
                         }
                     )
                     logger.info(f"Estimated prob.({p}) at lim({lim})")
                 disk.set_value("solar_ch_regions", Namespace(**dtmp_map))
         return
+    
+    def clean_small_scale_structures(
+            self, 
+            contours: List[np.array], 
+            hierarchy: np.array,
+            data: np.array,
+        ) -> tuple:
+        r"""Remove small scale structures from the contour list.
+
+        Attributes:
+            contours (List[np.array]): List containing all the countours
+            hierarchy (np.array): Hierarchy of the contours
+            data (np.array): Data array to create maps
+        
+        Returns:
+            dataset (tuple): Tuple containing modified contours and hierarchy
+        """
+        dxmap = np.copy(data)
+        new_contours, new_hierarchy = list(), list()
+        for i, cnt in enumerate(contours):
+            area = cv2.contourArea(cnt)
+            if (area/self.disk_area >= self.area_threshold):
+                new_contours.append(cnt)
+                if hierarchy[0][i][3] < 0:
+                    cv2.drawContours(dxmap, [cnt], -1, (255, 255, 255), -1)
+                new_hierarchy.append(hierarchy[0][i])
+        return (new_contours, np.array(new_hierarchy), dxmap/255)
 
     def calculate_prob(self, data: np.array, thresholds: List[float]) -> float:
         r"""Method to estimate probability for each CH region identified by CHIPS.
@@ -425,17 +470,32 @@ class Chips(object):
             parameter_details=parameter_details
         )
         cp.create_diagonestics_plots(
-            self.folder + f"/diagonestics_{disk.wavelength}_{disk.resolution}.png",
+            self.folder + f"/diagonestics_solid_{disk.wavelength}_{disk.resolution}.png",
             prob_lower_lim=prob_lower_lim,
             figsize=(9, 3),
             nrows=1,
             ncols=3,
         )
+        cp.create_diagonestics_plots(
+            self.folder + f"/diagonestics_contour_{disk.wavelength}_{disk.resolution}.png",
+            prob_lower_lim=prob_lower_lim,
+            figsize=(9, 3),
+            nrows=1,
+            ncols=3,
+            solid_fill=False
+        )
         cp.create_output_stack(
-            fname=self.folder + f"/ouputstack_{disk.wavelength}_{disk.resolution}.png",
+            fname=self.folder + f"/ouputstack_solid_{disk.wavelength}_{disk.resolution}.png",
             figsize=(6, 6),
             nrows=2,
             ncols=2,
+        )
+        cp.create_output_stack(
+            fname=self.folder + f"/ouputstack_contour_{disk.wavelength}_{disk.resolution}.png",
+            figsize=(6, 6),
+            nrows=2,
+            ncols=2,
+            solid_fill=False
         )
         return
 
@@ -519,12 +579,18 @@ class Chips(object):
         nc.close()
         return
 
-    def compute_similarity_measures(self, map: np.ndarray, map0: np.ndarray) -> Dict:
-        """This method compute similarity matrices (cosine,)
+    def compute_similarity_measures(
+            self, 
+            map: np.ndarray, 
+            map0: np.ndarray,
+            measure: str = "Hu",
+        ) -> Dict:
+        """This method compute similarity matrices (cosine, Hu)
 
         Attributes:
             map (np.ndarray): An nD(typically 2D) array containing the map for comparison.
-            map0.(np.ndarray): Baseline solar map to compare againts.
+            map0 (np.ndarray): Baseline solar map to compare againts.
+            measure (str): Similarity measure name [cos/Hu]
 
         Returns:
             Method returns dictionary of measures.
