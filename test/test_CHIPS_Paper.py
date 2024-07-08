@@ -36,8 +36,8 @@ else:
 class TestCHIPSPaper(unittest.TestCase):
     def test_run_analysis(self):
         fname = "tmp/saveobj.pickle"
-        if os.path.exists(fname):
-            os.remove(fname)
+        # if os.path.exists(fname):
+        #     os.remove(fname)
         # self.date = dt.datetime(2018, 5, 11, 13)
         self.date = dt.datetime(2018, 5, 30, 12)
         if not os.path.exists(fname):
@@ -45,21 +45,21 @@ class TestCHIPSPaper(unittest.TestCase):
                 RegisterAIA(
                     self.date,
                     [171],
-                    [4096],
+                    4096,
                     apply_psf=False,
                     local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
                 ),
                 RegisterAIA(
                     self.date,
                     [193],
-                    [4096],
+                    4096,
                     apply_psf=False,
                     local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
                 ),
                 RegisterAIA(
                     self.date,
                     [211],
-                    [4096],
+                    4096,
                     apply_psf=False,
                     local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
                 ),
@@ -81,7 +81,7 @@ class TestCHIPSPaper(unittest.TestCase):
                 o = pickle.load(f)
             chips171, chips193, chips211 = o["chips171"], o["chips193"], o["chips211"]
             self.create_stack_plot_fig_analysis(chips171, chips193, chips211)
-            # self.create_stack_plot_fig_all(chips171, chips193, chips211)
+            self.create_stack_plot_fig_all(chips171, chips193, chips211)
             self.create_process_flow_steps(chips193)
             self.create_histogram_plots(chips193)
         return
@@ -333,6 +333,7 @@ class TestCHIPSPaper(unittest.TestCase):
             ncols=3,
             sharex="none",
             sharey="none",
+            vert=np.array([[1000,1000],[3000,3000]])
         )
         disk193 = chips193.aia.datasets[193][4096]
         ip.draw_grayscale_disk(

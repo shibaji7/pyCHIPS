@@ -67,6 +67,7 @@ class ImagePalette(object):
         font_family (str): Font familly.
         sharex (str): Shareing X-axis ['all', 'row', 'col', 'none'].
         sharey (str): Shareing X-axis ['all', 'row', 'col', 'none'],
+        vert (np.array): Vertices of rectange to zoom in a specific region [lower left, upper right points].
     """
 
     def __init__(
@@ -78,6 +79,7 @@ class ImagePalette(object):
         font_family: str = "sans-serif",
         sharex: str = "all",
         sharey: str = "all",
+        vert: np.array = None,
     ) -> None:
         plt.rcParams["font.family"] = font_family
         if font_family == "sans-serif":
@@ -95,6 +97,7 @@ class ImagePalette(object):
             figsize=figsize,
             dpi=dpi,
         )
+        self.vert = vert
         self.ticker = 0
         self.axes = []
         if nrows * ncols == 1:
@@ -153,6 +156,9 @@ class ImagePalette(object):
             self.ticker += 1
         if axis_off:
             ax.set_axis_off()
+        if self.vert is not None and self.vert.shape[0]==2:
+            ax.set_xlim(self.vert[0,0], self.vert[1,0])
+            ax.set_ylim(self.vert[0,1], self.vert[1,1])
         return ax
 
     def __circle__(
@@ -695,6 +701,7 @@ class ChipsPlotter(object):
         ncols: int = None,
         prob_lower_lim: float = 0.8,
         solid_fill: bool = True,
+        vert: np.array = None,
     ) -> None:
         """Method to create diagonestics plots showing different steps of CHIPS.
 
@@ -706,6 +713,7 @@ class ChipsPlotter(object):
             ncols (int): Number of axis colums in a figure palete.
             prob_lower_lim (float): Minimum limit of the color bar.
             solid_fill (bool): Create solid filled graph or contours.
+            vert (np.array): Vertices of rectange to zoom in a specific region [lower left, upper right points].
 
         Returns:
             Method returns None.
@@ -714,7 +722,7 @@ class ChipsPlotter(object):
         dpi = dpi if dpi else self.dpi
         nrows = nrows if nrows else self.nrows
         ncols = ncols if ncols else self.ncols
-        ip = ImagePalette(figsize, dpi, nrows, ncols)
+        ip = ImagePalette(figsize, dpi, nrows, ncols, vert)
         ip.draw_colored_disk(
             map=self.disk.normalized,
             pixel_radius=self.disk.pixel_radius,
@@ -775,6 +783,7 @@ class ChipsPlotter(object):
         nrows: int = None,
         ncols: int = None,
         solid_fill: bool = True,
+        vert: np.array = None,
     ) -> None:
         """Method to create stack plots showing different binary CH regional plots identified by CHIPS.
 
@@ -784,7 +793,8 @@ class ChipsPlotter(object):
             dpi (int): Dots per linear inch.
             nrows (int): Number of axis rows in a figure palete.
             ncols (int): Number of axis colums in a figure palete.
-            solid_fill (bool): Create solid filled graph or contours
+            solid_fill (bool): Create solid filled graph or contours.
+            vert (np.array): Vertices of rectange to zoom in a specific region [lower left, upper right points].
 
         Returns:
             Method returns None.
