@@ -722,7 +722,7 @@ class ChipsPlotter(object):
         dpi = dpi if dpi else self.dpi
         nrows = nrows if nrows else self.nrows
         ncols = ncols if ncols else self.ncols
-        ip = ImagePalette(figsize, dpi, nrows, ncols, vert)
+        ip = ImagePalette(figsize, dpi, nrows, ncols, vert=vert)
         ip.draw_colored_disk(
             map=self.disk.normalized,
             pixel_radius=self.disk.pixel_radius,
