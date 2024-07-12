@@ -195,6 +195,7 @@ class ImagePalette(object):
         ticker: int = None,
         alpha: float = 1,
         draw_circle: bool = True,
+        axis_off: bool = True,
     ) -> None:
         """Plotting colored solar disk images in the axis.
 
@@ -206,11 +207,12 @@ class ImagePalette(object):
             ticker (int): Axis ticker.
             alpha (float): Figure transparency.
             draw_circle (bool): Draw the solar disk.
+            axis_off (bool): Off the axis.
 
         Returns:
             Method returns None.
         """
-        ax = self.__axis__(ticker)
+        ax = self.__axis__(ticker, axis_off)
         data = data if data is not None else map.data
         norm = map.plot_settings["norm"]
         norm.vmin, norm.vmax = np.percentile(map.data, [30, 99.9])
@@ -234,6 +236,7 @@ class ImagePalette(object):
         ticker: int = None,
         alpha: float = 1,
         draw_circle: bool = True,
+        axis_off: bool = True,
     ) -> None:
         """Plotting gray-scaled solar disk images in the axis.
 
@@ -245,11 +248,12 @@ class ImagePalette(object):
             ticker (int): Axis ticker.
             alpha (float): Figure transparency.
             draw_circle (bool): Draw the solar disk.
+            axis_off (bool): Off the axis.
 
         Returns:
             Method returns None.
         """
-        ax = self.__axis__(ticker)
+        ax = self.__axis__(ticker, axis_off)
         data = data if data is not None else map.data
         norm = map.plot_settings["norm"]
         norm.vmin, norm.vmax = np.percentile(map.data, [30, 99.9])
@@ -272,6 +276,7 @@ class ImagePalette(object):
         cmap: str = "Spectral_r",
         ticker: int = None,
         convert_bgc_black: bool = False,
+        axis_off: bool = True,
     ) -> None:
         """Overlay the identified CH regions on top of the Disk maps.
 
@@ -282,12 +287,13 @@ class ImagePalette(object):
             cmap (str): Color map in string - refer `matplotlib` for details.
             ticker (int): Axis ticker.
             convert_bgc_black (bool): Convert BGC color black.
+            axis_off (bool): Off the axis.
 
         Returns:
             Method returns None.
         """
         ticker = ticker if ticker else self.ticker - 1
-        ax = self.__axis__(ticker)
+        ax = self.__axis__(ticker, axis_off)
         keys = list(regions.__dict__.keys())
         limits, probs = (
             np.array([regions.__dict__[key].lim for key in keys]),
@@ -322,6 +328,7 @@ class ImagePalette(object):
         ticker: int = None,
         convert_bgc_black: bool = False,
         resolution: int = 4096,
+        axis_off: bool = True,
     ) -> None:
         """Overlay the identified CH regions on top of the Disk maps.
 
@@ -332,12 +339,13 @@ class ImagePalette(object):
             cmap (str): Color map in string - refer `matplotlib` for details.
             ticker (int): Axis ticker.
             convert_bgc_black (bool): Convert BGC color black.
+            axis_off (bool): Off the axis.
 
         Returns:
             Method returns None.
         """
         ticker = ticker if ticker else self.ticker - 1
-        ax = self.__axis__(ticker)
+        ax = self.__axis__(ticker, axis_off)
         keys = list(regions.__dict__.keys())
         limits, probs = (
             np.array([regions.__dict__[key].lim for key in keys]),
@@ -803,7 +811,7 @@ class ChipsPlotter(object):
         dpi = dpi if dpi else self.dpi
         nrows = nrows if nrows else self.nrows
         ncols = ncols if ncols else self.ncols
-        ip = ImagePalette(figsize, dpi, nrows, ncols)
+        ip = ImagePalette(figsize, dpi, nrows, ncols, vert=vert)
         if solid_fill:
             ip.plot_binary_localized_maps(
                 self.disk.solar_ch_regions,

@@ -445,6 +445,7 @@ class Chips(object):
         disk,
         dpi=240,
         prob_lower_lim: float = 0.0,
+        vert: np.array = None,
     ) -> None:
         """Method to create diagonestics plots showing different steps of CHIPS.
         Expected file formats png, bmp, jpg, pdf, etc.
@@ -453,6 +454,7 @@ class Chips(object):
             disk (chips.fetch.SolarDisk): Solar disk object that holds all information for drawing.
             dpi (int): Dots per linear inch.
             prob_lower_lim (float): Minimum limit of the color bar.
+            vert (np.array): Vertices of rectange to zoom in a specific region [lower left, upper right points].
 
         Returns:
             Method returns None.
@@ -475,6 +477,7 @@ class Chips(object):
             figsize=(9, 3),
             nrows=1,
             ncols=3,
+            vert=vert,
         )
         cp.create_diagonestics_plots(
             self.folder + f"/diagonestics_contour_{disk.wavelength}_{disk.resolution}.png",
@@ -482,20 +485,23 @@ class Chips(object):
             figsize=(9, 3),
             nrows=1,
             ncols=3,
-            solid_fill=False
+            solid_fill=False,
+            vert=vert,
         )
         cp.create_output_stack(
             fname=self.folder + f"/ouputstack_solid_{disk.wavelength}_{disk.resolution}.png",
             figsize=(6, 6),
             nrows=2,
             ncols=2,
+            vert=vert,
         )
         cp.create_output_stack(
             fname=self.folder + f"/ouputstack_contour_{disk.wavelength}_{disk.resolution}.png",
             figsize=(6, 6),
             nrows=2,
             ncols=2,
-            solid_fill=False
+            solid_fill=False,
+            vert=vert,
         )
         return
 
