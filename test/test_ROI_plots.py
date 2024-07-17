@@ -69,9 +69,13 @@ def run_different_CHIPS_parameters(date):
     cps = []
     params = [
         dict(medfilt_kernel=11, h_bins=5000),
-        dict(medfilt_kernel=21, h_bins=5000),
         dict(medfilt_kernel=31, h_bins=5000),
-        dict(medfilt_kernel=41, h_bins=5000),
+        dict(medfilt_kernel=51, h_bins=5000),
+        dict(medfilt_kernel=71, h_bins=5000),
+        dict(medfilt_kernel=51, h_bins=20000),
+        dict(medfilt_kernel=51, h_bins=10000),
+        dict(medfilt_kernel=51, h_bins=5000),
+        dict(medfilt_kernel=51, h_bins=500),
     ]
     #####################################################################
     # Run this part one at a time to generate stable save files

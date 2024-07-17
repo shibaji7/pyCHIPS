@@ -139,12 +139,13 @@ class ImagePalette(object):
         self.fig.savefig(fname, bbox_inches=bbox_inches)
         return
 
-    def __axis__(self, ticker: int = None, axis_off: bool = True) -> None:
+    def __axis__(self, ticker: int = None, axis_off: bool = True, disk_axis: bool = False) -> None:
         """Adding/fetching axis in the figure Paletes.
 
         Arguments:
             ticker (int): Figure axis number.
             axis_off (bool): Set both axis Off.
+            disk_axis (bool): Set both axis to Disk-pixel axis.
 
         Returns:
             Method returns None.
@@ -156,6 +157,11 @@ class ImagePalette(object):
             self.ticker += 1
         if axis_off:
             ax.set_axis_off()
+        if disk_axis and (not axis_off):
+            ax.set_xticks([0, 1024, 2048, 3072, 4095])
+            ax.set_xticklabels([r'-$2^{11}$', r'-$2^{10}$', '0', r'-$2^{10}$', r'-$2^{11}$'])
+            ax.set_yticks([0, 1024, 2048, 3072, 4095])
+            ax.set_yticklabels([r'-$2^{11}$', r'-$2^{10}$', '0', r'-$2^{10}$', r'-$2^{11}$'])
         if self.vert is not None and self.vert.shape[0]==2:
             ax.set_xlim(self.vert[0,0], self.vert[1,0])
             ax.set_ylim(self.vert[0,1], self.vert[1,1])
@@ -212,7 +218,7 @@ class ImagePalette(object):
         Returns:
             Method returns None.
         """
-        ax = self.__axis__(ticker, axis_off)
+        ax = self.__axis__(ticker, axis_off, disk_axis=not axis_off)
         data = data if data is not None else map.data
         norm = map.plot_settings["norm"]
         norm.vmin, norm.vmax = np.percentile(map.data, [30, 99.9])
@@ -224,7 +230,7 @@ class ImagePalette(object):
             alpha=alpha,
         )
         if draw_circle:
-            self.__circle__(ax, pixel_radius, resolution)
+            self.__circle__(ax, pixel_radius, resolution, color="m")
         return
 
     def draw_grayscale_disk(
@@ -253,7 +259,7 @@ class ImagePalette(object):
         Returns:
             Method returns None.
         """
-        ax = self.__axis__(ticker, axis_off)
+        ax = self.__axis__(ticker, axis_off, disk_axis=not axis_off)
         data = data if data is not None else map.data
         norm = map.plot_settings["norm"]
         norm.vmin, norm.vmax = np.percentile(map.data, [30, 99.9])
@@ -293,7 +299,7 @@ class ImagePalette(object):
             Method returns None.
         """
         ticker = ticker if ticker else self.ticker - 1
-        ax = self.__axis__(ticker, axis_off)
+        ax = self.__axis__(ticker, axis_off, disk_axis=not axis_off)
         keys = list(regions.__dict__.keys())
         limits, probs = (
             np.array([regions.__dict__[key].lim for key in keys]),
@@ -345,7 +351,7 @@ class ImagePalette(object):
             Method returns None.
         """
         ticker = ticker if ticker else self.ticker - 1
-        ax = self.__axis__(ticker, axis_off)
+        ax = self.__axis__(ticker, axis_off, disk_axis=not axis_off)
         keys = list(regions.__dict__.keys())
         limits, probs = (
             np.array([regions.__dict__[key].lim for key in keys]),
@@ -405,6 +411,7 @@ class ImagePalette(object):
         regions: List[dict],
         pixel_radius: int,
         resolution: int = 4096,
+        axis_off: bool = True,
     ):
         """Method to add binary CH region maps.
 
@@ -412,6 +419,7 @@ class ImagePalette(object):
             regions (List[dict]): List of dictonary holding all the information of identified CH regions.
             pixel_radius (int): Radious of the solar disk.
             resolution (int): Image resolution (typically 4k).
+            axis_off (bool): Off the axis.
 
         Returns:
             Method returns None.
@@ -435,7 +443,7 @@ class ImagePalette(object):
             )
             txt = r"$\tau=$%s" % key + "\n" + r"$\theta=%.3f$" % p
             img = np.zeros((resolution, resolution))
-            ax = self.__axis__(None)
+            ax = self.__axis__(None, axis_off=axis_off, disk_axis=not axis_off)
             cv2.drawContours(img, contours, -1, (255,255,255), 1)
             ax.imshow(img, cmap="gray", vmax=1, vmin=0, origin="lower")
             ax.text(
@@ -455,6 +463,7 @@ class ImagePalette(object):
         regions: List[dict],
         pixel_radius: int,
         resolution: int = 4096,
+        axis_off: bool = True,
     ):
         """Method to add binary CH region maps.
 
@@ -462,6 +471,7 @@ class ImagePalette(object):
             regions (List[dict]): List of dictonary holding all the information of identified CH regions.
             pixel_radius (int): Radious of the solar disk.
             resolution (int): Image resolution (typically 4k).
+            axis_off (bool): Off the axis.
 
         Returns:
             Method returns None.
@@ -481,7 +491,7 @@ class ImagePalette(object):
         for key, p in zip(keys, n_probs):
             map = regions.__dict__[key].map
             txt = r"$\tau=$%s" % key + "\n" + r"$\theta=%.3f$" % p
-            self.plot_binary_localized_map(map, pixel_radius, resolution, None, txt)
+            self.plot_binary_localized_map(map, pixel_radius, resolution, None, txt, axis_off=axis_off)
         return
 
     def plot_binary_localized_map(
@@ -491,6 +501,7 @@ class ImagePalette(object):
         resolution: int = 4096,
         ticker: int = None,
         txt: str = None,
+        axis_off: bool = True,
     ):
         """Method to add binary CH region map.
 
@@ -500,11 +511,12 @@ class ImagePalette(object):
             resolution (int): Image resolution (typically 4k).
             ticker (int): Axis ticker.
             txt (str): Text to add.
+            axis_off (bool): Off the axis.
 
         Returns:
             Method returns None.
         """
-        ax = self.__axis__(ticker)
+        ax = self.__axis__(ticker, axis_off=axis_off, disk_axis=not axis_off)
         ax.imshow(map, cmap="gray", vmax=1, vmin=0, origin="lower")
         if txt:
             ax.text(
