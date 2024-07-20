@@ -318,7 +318,6 @@ class ImagePalette(object):
             axis=0,
         )
         stacked[stacked == 0.0] = np.nan
-
         im = ax.imshow(stacked, cmap=cmap, norm=norm, origin="lower")
         ax.patch.set_facecolor("black")
         if add_color_bar:

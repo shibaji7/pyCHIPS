@@ -20,10 +20,12 @@ import numpy as np
 from chips.chips import Chips
 from chips.fetch import RegisterAIA
 from chips.plots import Annotation, ImagePalette
+import matplotlib.pyplot as plt
 
 
 def run_CHIPS(param, indx):
     fname = f"tmp/stored_{indx}.pickle"
+    print(fname)
     if not os.path.exists(fname):
         aia = RegisterAIA(
             date,
@@ -61,7 +63,7 @@ def run_CHIPS(param, indx):
 #   2. Create reference plots
 #   3. Create ROI plot just like Fig 4 in 
 ###################################################################
-def run_different_CHIPS_parameters(date):
+def run_different_CHIPS_parameters(date, base_number=0):
     """
     Run the CHIPS algorithms with different parameters 
     and save them for future plots.
@@ -79,7 +81,7 @@ def run_different_CHIPS_parameters(date):
     ]
     #####################################################################
     # Run this part one at a time to generate stable save files
-    for i in range(4):
+    for i in range(base_number, base_number+4):
         d = run_CHIPS(params[i], i)
         cps.append(copy.copy(d))
         del d
@@ -91,7 +93,7 @@ def draw_ref_plots():
     """
     return
 
-def draw_ROI_plot(date, cps, params):
+def draw_ROI_plot(date, cps, params, base_number=0):
     """
     Draw a panel of 2X2 plots for ROI plots.
     """
@@ -103,6 +105,7 @@ def draw_ROI_plot(date, cps, params):
         vert=np.array([[1300,1300],[2500,2500]])
     )
     dx = cps[0].aia.datasets[193][4096]
+
     def plot_roi(index=0, cb=False, a_off=True):
         d = cps[index].aia.datasets[193][4096]
         ip.draw_colored_disk(
@@ -115,13 +118,21 @@ def draw_ROI_plot(date, cps, params):
             d.solar_ch_regions, 
             prob_lower_lim=0,
             add_color_bar=cb,
-            axis_off=a_off,
+            axis_off=a_off
         )
-        return
+        return plt.gcf().axes
+    
     plot_roi(0)
     plot_roi(1)
     plot_roi(2, a_off=False)
     plot_roi(3, cb=True)
+    ax = plt.gcf().axes[2]
+    ax.set_xticks(np.arange(1300, 2501, 400))
+    ax.set_yticks(np.arange(1300, 2501, 400))
+    ax.set_xticklabels(np.arange(1300, 2501, 400))
+    ax.set_yticklabels(np.arange(1300, 2501, 400))
+    ax.set_ylabel("pixels")
+    ax.set_xlabel("pixels")
 
     annotations = []
     annotations.append(
@@ -146,7 +157,8 @@ def draw_ROI_plot(date, cps, params):
     ip.annotate(annotations, ticker=1,)
     ip.annotate(
         [Annotation(
-            r"$\kappa=$%d, $h_{bins}=$%d" % (params[0]["medfilt_kernel"], params[0]["h_bins"]),
+            r"$\kappa=$%d, $h_{bins}=$%d" % 
+            (params[0+base_number]["medfilt_kernel"], params[0+base_number]["h_bins"]),
             0.05,
             0.9,
             "left",
@@ -156,7 +168,8 @@ def draw_ROI_plot(date, cps, params):
     )
     ip.annotate(
         [Annotation(
-            r"$\kappa=$%d, $h_{bins}=$%d" % (params[1]["medfilt_kernel"], params[1]["h_bins"]),
+            r"$\kappa=$%d, $h_{bins}=$%d" % 
+            (params[1+base_number]["medfilt_kernel"], params[1+base_number]["h_bins"]),
             0.05,
             0.9,
             "left",
@@ -166,7 +179,8 @@ def draw_ROI_plot(date, cps, params):
     )
     ip.annotate(
         [Annotation(
-            r"$\kappa=$%d, $h_{bins}=$%d" % (params[2]["medfilt_kernel"], params[2]["h_bins"]),
+            r"$\kappa=$%d, $h_{bins}=$%d" % 
+            (params[2+base_number]["medfilt_kernel"], params[2+base_number]["h_bins"]),
             0.05,
             0.9,
             "left",
@@ -176,7 +190,8 @@ def draw_ROI_plot(date, cps, params):
     )
     ip.annotate(
         [Annotation(
-            r"$\kappa=$%d, $h_{bins}=$%d" % (params[3]["medfilt_kernel"], params[3]["h_bins"]),
+            r"$\kappa=$%d, $h_{bins}=$%d" % 
+            (params[3+base_number]["medfilt_kernel"], params[3+base_number]["h_bins"]),
             0.05,
             0.9,
             "left",
@@ -191,6 +206,6 @@ def draw_ROI_plot(date, cps, params):
 
 
 if __name__ == "__main__":
-    date = dt.datetime(2015, 8, 20)
-    cps, params = run_different_CHIPS_parameters(date)
-    draw_ROI_plot(date, cps, params)
+    date, base_number = dt.datetime(2015, 8, 20), 4
+    cps, params = run_different_CHIPS_parameters(date, base_number=base_number)
+    draw_ROI_plot(date, cps, params, base_number=base_number)

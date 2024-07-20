@@ -13,7 +13,7 @@ __status__ = "Research"
 
 import os
 from argparse import Namespace
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -22,6 +22,8 @@ from netCDF4 import Dataset
 from scipy import signal
 
 from chips.plots import ChipsPlotter
+from chips.cleanup import CleanFl
+from chips.fetch import RegisterAIA
 
 
 class Chips(object):
@@ -39,6 +41,7 @@ class Chips(object):
         threshold_range (List[float]): List of thresholds from `h_thresh` to run CHIPS.
         porb_threshold (int): This is $x_{\tau}$.
         area_threshold (float): Percentage (0-1) area thresholds to remove small structures.
+        run_fl_cleanup (bool): Run the filament cleanups.
     """
 
     def __init__(
@@ -54,6 +57,7 @@ class Chips(object):
         threshold_range: List[float] = [0, 20],
         porb_threshold: float = 0.8,
         area_threshold: float = 1e-3,
+        run_fl_cleanup: bool = False,
     ) -> None:
         """Initialization method"""
         self.aia = aia
@@ -67,6 +71,7 @@ class Chips(object):
         self.threshold_range = threshold_range
         self.porb_threshold = porb_threshold
         self.area_threshold = area_threshold
+        self.run_fl_cleanup = run_fl_cleanup
         self.get_base_folder()
         return
 
@@ -118,6 +123,8 @@ class Chips(object):
         Returns:
             Method returns None.
         """
+        if self.run_fl_cleanup:
+            self.run_filament_cleanup()
         resolution = self.aia.resolution if resolution is None else resolution
         if (wavelength is not None) and (resolution is not None):
             if (wavelength in self.aia.wavelengths) and (
@@ -366,6 +373,8 @@ class Chips(object):
                     tmp_data[tmp_data > lim] = 0
                     tmp_data[tmp_data == -1] = 1
                     tmp_data[np.isnan(tmp_data)] = 0
+                    if self.run_fl_cleanup:
+                        tmp_data = tmp_data * self.cf.candidate_bitmap
                     p = self.calculate_prob(np.copy(data).ravel(), [lim, limit_0])
                     ##############################################################
                     # Calculate region by CV2 find contour function
@@ -611,3 +620,56 @@ class Chips(object):
                 cosine_sim.append(cosine_similarity(a, b)[0, 0])
         measures["cosine_sim"] = np.nanmean(cosine_sim)
         return measures
+    
+    def run_filament_cleanup(
+        self,
+        params: dict = dict(
+            clip_negative=0,
+            clip_211_log = [0.8, 2.7],
+            clip_193_log = [1.4, 3.0],
+            clip_171_log = [1.2, 3.9],
+            bmmix_value = 0.6357,
+            bmhot_value = 0.7,
+            bmcool_value = 1.5102,
+        ),
+        file_name: str = None,
+        figsize: Tuple = (6, 6),
+        dpi: int = 240,
+        nrows: int = 2,
+        ncols: int = 2,
+    ) -> None:
+        """
+        This method clears all possible filaments.
+
+        Attributes:
+            params (dict): Parameters to optimize the cleanups.
+            resolution (int): Image resolution.
+            figsize (Tuple): Figure size (width, height)
+            dpi (int): Dots per linear inch.
+            nrows (int): Number of axis rows in a figure palete.
+            ncols (int): Number of axis colums in a figure palete.
+
+        Returns:
+            Method returns none
+        """
+        logger.info("Into the filament Cleanups!")
+        self.cf = CleanFl(
+            RegisterAIA(
+                self.aia.date,
+                [171, 193, 211],
+                self.aia.resolution,
+                apply_psf=False,
+                local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
+            ), 
+            resolution=self.aia.resolution, 
+            params=params
+        )
+        self.cf.create_coronal_hole_candidates()
+        self.cf.produce_summary_plots(
+            file_name=file_name,
+            figsize=figsize,
+            dpi=dpi,
+            nrows=nrows,
+            ncols=ncols,
+        )
+        return

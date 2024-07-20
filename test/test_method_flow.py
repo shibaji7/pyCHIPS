@@ -15,6 +15,7 @@ import datetime as dt
 import copy
 import os
 import pickle
+import matplotlib.pyplot as plt
 
 import numpy as np
 from chips.chips import Chips
@@ -166,6 +167,13 @@ def draw_flow_example_plot(date, chips, param):
             )
         ], ticker=1
     )
+    ax = plt.gcf().axes[6]
+    ax.set_xticks(np.arange(0, 4097, 1024))
+    ax.set_yticks(np.arange(0, 4097, 1024))
+    ax.set_xticklabels([-2048, -1024, 0, 1024, 2048])
+    ax.set_yticklabels([-2048, -1024, 0, 1024, 2048])
+    ax.set_ylabel("pixels")
+    ax.set_xlabel("pixels")
     ip.save(f"tmp/flow_steps.png")
     ip.close()
     return
@@ -178,10 +186,10 @@ if __name__ == "__main__":
         wavelength=193, threshold_range=[0, 20]
     )
     # Params for 211 Dataset
-    # param = dict(
-    #     medfilt_kernel=51, h_bins=1000,
-    #     wavelength=211, threshold_range=[-3, 11]
-    # )
+    param = dict(
+        medfilt_kernel=51, h_bins=1000,
+        wavelength=211, threshold_range=[-3, 11]
+    )
     
     chips = run_CHIPS(date, param)
     draw_flow_example_plot(date, chips, param)
