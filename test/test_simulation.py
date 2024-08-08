@@ -20,10 +20,6 @@ from chips.chips import Chips
 from chips.fetch import RegisterAIA
 from chips.plots import ImagePalette
 
-# import sys
-# sys.path.append("../chips/")
-# from fetch import RegisterAIA
-
 
 def plot_histograms(hist0):
     import scipy.stats as stats
@@ -57,7 +53,7 @@ class TestCHIPS(unittest.TestCase):
             dt.datetime(2018, 5, 30, 12), wavelengths=[193], apply_psf=False
         )
         # aia.plot_scatter_maps()
-        chips = Chips(aia, medfilt_kernel=51, h_bins=500)
+        chips = Chips(aia, medfilt_kernel=11, h_bins=500)
         chips.run_CHIPS()
         # disk = chips.aia.datasets[193][4096]
         # h_data = disk.solar_filter.filt_disk * disk.solar_mask.n_mask

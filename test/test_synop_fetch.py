@@ -15,7 +15,6 @@ import datetime as dt
 import sys
 import unittest
 
-sys.path.append("../chips/")
 from fetch import SynopticMap
 from syn_chips import SynopticChips
 

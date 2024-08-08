@@ -94,7 +94,7 @@ def draw_ref_plots():
     return
 
 
-def draw_ROI_plot(date, cps, params, base_number=0):
+def draw_ROI_plot(date, cps, params, base_number=0, plot_cnt=True):
     """
     Draw a panel of 2X2 plots for ROI plots.
     """
@@ -115,16 +115,22 @@ def draw_ROI_plot(date, cps, params, base_number=0):
             resolution=d.resolution,
             axis_off=a_off,
         )
-        ip.ovearlay_localized_regions(
-            d.solar_ch_regions, prob_lower_lim=0, add_color_bar=cb, axis_off=a_off
-        )
+        if plot_cnt:
+            ip.ovearlay_localized_contours(
+                d.solar_ch_regions, prob_lower_lim=0, add_color_bar=cb, axis_off=a_off,
+                cmap="cool"
+            )
+        else:
+            ip.ovearlay_localized_regions(
+                d.solar_ch_regions, prob_lower_lim=0, add_color_bar=cb, axis_off=a_off
+            )
         return plt.gcf().axes
 
     plot_roi(0)
     plot_roi(1)
     plot_roi(2, a_off=False)
     plot_roi(3, cb=True)
-    ax = plt.gcf().axes[0]
+    ax = plt.gcf().axes[2]
     ax.set_xticks(np.arange(1300, 2501, 400))
     ax.set_yticks(np.arange(1300, 2501, 400))
     ax.set_xticklabels(np.arange(1300, 2501, 400) - 2**11)
@@ -227,6 +233,6 @@ def draw_ROI_plot(date, cps, params, base_number=0):
 
 
 if __name__ == "__main__":
-    date, base_number = dt.datetime(2015, 8, 20), 4
+    date, base_number = dt.datetime(2015, 8, 20), 0
     cps, params = run_different_CHIPS_parameters(date, base_number=base_number)
-    draw_ROI_plot(date, cps, params, base_number=base_number)
+    draw_ROI_plot(date, cps, params, base_number=base_number, plot_cnt=True)
