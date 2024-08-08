@@ -331,11 +331,13 @@ class ImagePalette(object):
         regions: List[dict],
         prob_lower_lim: float = 0,
         add_color_bar: bool = True,
-        cmap: str = "autumn",
+        cmap: str = "Spectral_r",
         ticker: int = None,
         convert_bgc_black: bool = False,
         resolution: int = 4096,
         axis_off: bool = True,
+        linewidth: float = 0.4,
+        max_num_contours: int = 3,
     ) -> None:
         """Overlay the identified CH regions on top of the Disk maps.
 
@@ -347,6 +349,8 @@ class ImagePalette(object):
             ticker (int): Axis ticker.
             convert_bgc_black (bool): Convert BGC color black.
             axis_off (bool): Off the axis.
+            linewdith (float): Width of the contour lines
+            max_num_contours (int): Maximum number of probability contours to be plotted
 
         Returns:
             Method returns None.
@@ -363,7 +367,8 @@ class ImagePalette(object):
         norm = matplotlib.colors.Normalize(vmin=prob_lower_lim, vmax=1.0)
         cmap = matplotlib.cm.get_cmap(cmap)
         img = np.zeros((resolution, resolution))
-        for key, p in zip(keys, n_probs):
+        n = int(len(keys)/max_num_contours)
+        for key, p in zip(keys[::n], n_probs[::n]):
             contours, hierarchy = (
                 regions.__dict__[key].contours,
                 regions.__dict__[key].hierarchy,
@@ -372,7 +377,11 @@ class ImagePalette(object):
             for component in zip(contours, hierarchy):
                 cc, ch = (component[0], component[1])
                 if ch[3] < 0:
-                    ax.plot(cc[:, 0, 0], cc[:, 0, 1], color=color, lw=0.05)
+                    # Add prob text to the lines 
+                    #x_val, y_val, n_len = cc[:, 0, 0], cc[:, 0, 1], len(cc[:, 0, 1])
+                    #y_val[int(n_len/3):int(n_len/2)] = np.nan
+                    ax.plot(cc[:, 0, 0], cc[:, 0, 1], color=color, lw=linewidth)
+                    
         ax.patch.set_facecolor("black")
         if add_color_bar:
             cpos = [1.04, 0.1, 0.025, 0.8]
