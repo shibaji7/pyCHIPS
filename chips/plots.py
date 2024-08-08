@@ -13,13 +13,13 @@ __status__ = "Research"
 
 from typing import List, Tuple
 
+import cv2
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import sunpy.map
 import sunpy.visualization.colormaps as cm
 from loguru import logger
-import cv2
 
 
 class Annotation(object):
@@ -139,7 +139,9 @@ class ImagePalette(object):
         self.fig.savefig(fname, bbox_inches=bbox_inches)
         return
 
-    def __axis__(self, ticker: int = None, axis_off: bool = True, disk_axis: bool = False) -> None:
+    def __axis__(
+        self, ticker: int = None, axis_off: bool = True, disk_axis: bool = False
+    ) -> None:
         """Adding/fetching axis in the figure Paletes.
 
         Arguments:
@@ -162,9 +164,9 @@ class ImagePalette(object):
             ax.set_xticklabels([-2048, -1024, 0, 1024, 2048])
             ax.set_yticks(np.array([0, 1024, 2048, 3072, 4096]))
             ax.set_yticklabels([-2048, -1024, 0, 1024, 2048])
-        if self.vert is not None and self.vert.shape[0]==2:
-            ax.set_xlim(self.vert[0,0], self.vert[1,0])
-            ax.set_ylim(self.vert[0,1], self.vert[1,1])
+        if self.vert is not None and self.vert.shape[0] == 2:
+            ax.set_xlim(self.vert[0, 0], self.vert[1, 0])
+            ax.set_ylim(self.vert[0, 1], self.vert[1, 1])
         return ax
 
     def __circle__(
@@ -323,13 +325,13 @@ class ImagePalette(object):
         if add_color_bar:
             self.__add_colorbar__(ax, im, label="Probability")
         return
-    
+
     def ovearlay_localized_contours(
         self,
         regions: List[dict],
         prob_lower_lim: float = 0,
         add_color_bar: bool = True,
-        cmap: str = "Spectral_r",
+        cmap: str = "autumn",
         ticker: int = None,
         convert_bgc_black: bool = False,
         resolution: int = 4096,
@@ -364,18 +366,20 @@ class ImagePalette(object):
         for key, p in zip(keys, n_probs):
             contours, hierarchy = (
                 regions.__dict__[key].contours,
-                regions.__dict__[key].hierarchy
+                regions.__dict__[key].hierarchy,
             )
             color = cmap(p)
             for component in zip(contours, hierarchy):
                 cc, ch = (component[0], component[1])
                 if ch[3] < 0:
-                    ax.plot(cc[:,0,0], cc[:,0,1], color=color, lw=0.05)
+                    ax.plot(cc[:, 0, 0], cc[:, 0, 1], color=color, lw=0.05)
         ax.patch.set_facecolor("black")
         if add_color_bar:
             cpos = [1.04, 0.1, 0.025, 0.8]
             cax = ax.inset_axes(cpos, transform=ax.transAxes)
-            cb  = matplotlib.colorbar.ColorbarBase(ax=cax, cmap=cmap, values=sorted([0, 0.2, 0.4, 0.6, 0.8, 1]))
+            cb = matplotlib.colorbar.ColorbarBase(
+                ax=cax, cmap=cmap, values=sorted([0, 0.2, 0.4, 0.6, 0.8, 1])
+            )
             cb.set_label("Probability")
         return
 
@@ -404,7 +408,7 @@ class ImagePalette(object):
         cb = self.fig.colorbar(im, ax=ax, cax=cax)
         cb.set_label(label)
         return
-    
+
     def draw_binary_localized_contours(
         self,
         regions: List[dict],
@@ -438,12 +442,12 @@ class ImagePalette(object):
         for key, p in zip(keys, n_probs):
             contours, hierarchy = (
                 regions.__dict__[key].contours,
-                regions.__dict__[key].hierarchy
+                regions.__dict__[key].hierarchy,
             )
             txt = r"$\tau=$%s" % key + "\n" + r"$\theta=%.3f$" % p
             img = np.zeros((resolution, resolution))
             ax = self.__axis__(None, axis_off=axis_off, disk_axis=not axis_off)
-            cv2.drawContours(img, contours, -1, (255,255,255), 1)
+            cv2.drawContours(img, contours, -1, (255, 255, 255), 1)
             ax.imshow(img, cmap="gray", vmax=1, vmin=0, origin="lower")
             ax.text(
                 0.05,
@@ -490,7 +494,9 @@ class ImagePalette(object):
         for key, p in zip(keys, n_probs):
             map = regions.__dict__[key].map
             txt = r"$\tau=$%s" % key + "\n" + r"$\theta=%.3f$" % p
-            self.plot_binary_localized_map(map, pixel_radius, resolution, None, txt, axis_off=axis_off)
+            self.plot_binary_localized_map(
+                map, pixel_radius, resolution, None, txt, axis_off=axis_off
+            )
         return
 
     def plot_binary_localized_map(
@@ -677,7 +683,7 @@ class ImagePalette(object):
         Returns:
             Method returns None.
         """
-        self.fig.suptitle(text, y=yloc, x=xloc);
+        self.fig.suptitle(text, y=yloc, x=xloc)
         return
 
 
@@ -787,7 +793,7 @@ class ChipsPlotter(object):
             ip.write_parameter_details(
                 self.parameter_details["text"],
                 self.parameter_details["xloc"],
-                self.parameter_details["yloc"]
+                self.parameter_details["yloc"],
             )
         if fname:
             ip.save(fname)
@@ -856,7 +862,7 @@ class ChipsPlotter(object):
             ip.write_parameter_details(
                 self.parameter_details["text"],
                 self.parameter_details["xloc"],
-                self.parameter_details["yloc"]
+                self.parameter_details["yloc"],
             )
         if fname:
             ip.save(fname)

@@ -21,9 +21,9 @@ from loguru import logger
 from netCDF4 import Dataset
 from scipy import signal
 
-from chips.plots import ChipsPlotter
 from chips.cleanup import CleanFl
 from chips.fetch import RegisterAIA
+from chips.plots import ChipsPlotter
 
 
 class Chips(object):
@@ -169,7 +169,7 @@ class Chips(object):
         self.extract_CHs_CHBs(disk)
         self.plot_diagonestics(disk)
         return
-    
+
     def extract_solar_masks(self, disk) -> None:
         """This method extract the solar disk mask, using method described in this [Section](../../tutorial/workings/).
 
@@ -380,12 +380,12 @@ class Chips(object):
                     # Calculate region by CV2 find contour function
                     ##############################################################
                     contours, hierarchy = cv2.findContours(
-                        tmp_data.astype(np.uint8), cv2.RETR_TREE, 
-                        cv2.CHAIN_APPROX_SIMPLE
+                        tmp_data.astype(np.uint8),
+                        cv2.RETR_TREE,
+                        cv2.CHAIN_APPROX_SIMPLE,
                     )
                     contours, hierarchy, dxmap = self.clean_small_scale_structures(
-                        contours, hierarchy,
-                        np.zeros_like(tmp_data)
+                        contours, hierarchy, np.zeros_like(tmp_data)
                     )
                     dtmp_map[str(lim)] = Namespace(
                         **{
@@ -401,20 +401,20 @@ class Chips(object):
                     logger.info(f"Estimated prob.({p}) at lim({lim})")
                 disk.set_value("solar_ch_regions", Namespace(**dtmp_map))
         return
-    
+
     def clean_small_scale_structures(
-            self, 
-            contours: List[np.array], 
-            hierarchy: np.array,
-            data: np.array,
-        ) -> tuple:
+        self,
+        contours: List[np.array],
+        hierarchy: np.array,
+        data: np.array,
+    ) -> tuple:
         r"""Remove small scale structures from the contour list.
 
         Attributes:
             contours (List[np.array]): List containing all the countours
             hierarchy (np.array): Hierarchy of the contours
             data (np.array): Data array to create maps
-        
+
         Returns:
             dataset (tuple): Tuple containing modified contours and hierarchy
         """
@@ -422,12 +422,12 @@ class Chips(object):
         new_contours, new_hierarchy = list(), list()
         for i, cnt in enumerate(contours):
             area = cv2.contourArea(cnt)
-            if (area/self.disk_area >= self.area_threshold):
+            if area / self.disk_area >= self.area_threshold:
                 new_contours.append(cnt)
                 if hierarchy[0][i][3] < 0:
                     cv2.drawContours(dxmap, [cnt], -1, (255, 255, 255), -1)
                 new_hierarchy.append(hierarchy[0][i])
-        return (new_contours, np.array(new_hierarchy), dxmap/255)
+        return (new_contours, np.array(new_hierarchy), dxmap / 255)
 
     def calculate_prob(self, data: np.array, thresholds: List[float]) -> float:
         r"""Method to estimate probability for each CH region identified by CHIPS.
@@ -468,20 +468,12 @@ class Chips(object):
         Returns:
             Method returns None.
         """
-        text = r"$\kappa={%d}$, $h_{bins}={%d}$"%(
-            self.medfilt_kernel, self.h_bins
-        )
-        parameter_details = dict(
-            xloc=0.8, yloc=1.01,
-            text = text
-        )
-        cp = ChipsPlotter(
-            disk,
-            dpi=dpi,
-            parameter_details=parameter_details
-        )
+        text = r"$\kappa={%d}$, $h_{bins}={%d}$" % (self.medfilt_kernel, self.h_bins)
+        parameter_details = dict(xloc=0.8, yloc=1.01, text=text)
+        cp = ChipsPlotter(disk, dpi=dpi, parameter_details=parameter_details)
         cp.create_diagonestics_plots(
-            self.folder + f"/diagonestics_solid_{disk.wavelength}_{disk.resolution}.png",
+            self.folder
+            + f"/diagonestics_solid_{disk.wavelength}_{disk.resolution}.png",
             prob_lower_lim=prob_lower_lim,
             figsize=(9, 3),
             nrows=1,
@@ -489,7 +481,8 @@ class Chips(object):
             vert=vert,
         )
         cp.create_diagonestics_plots(
-            self.folder + f"/diagonestics_contour_{disk.wavelength}_{disk.resolution}.png",
+            self.folder
+            + f"/diagonestics_contour_{disk.wavelength}_{disk.resolution}.png",
             prob_lower_lim=prob_lower_lim,
             figsize=(9, 3),
             nrows=1,
@@ -498,14 +491,16 @@ class Chips(object):
             vert=vert,
         )
         cp.create_output_stack(
-            fname=self.folder + f"/ouputstack_solid_{disk.wavelength}_{disk.resolution}.png",
+            fname=self.folder
+            + f"/ouputstack_solid_{disk.wavelength}_{disk.resolution}.png",
             figsize=(6, 6),
             nrows=2,
             ncols=2,
             vert=vert,
         )
         cp.create_output_stack(
-            fname=self.folder + f"/ouputstack_contour_{disk.wavelength}_{disk.resolution}.png",
+            fname=self.folder
+            + f"/ouputstack_contour_{disk.wavelength}_{disk.resolution}.png",
             figsize=(6, 6),
             nrows=2,
             ncols=2,
@@ -595,11 +590,11 @@ class Chips(object):
         return
 
     def compute_similarity_measures(
-            self, 
-            map: np.ndarray, 
-            map0: np.ndarray,
-            measure: str = "Hu",
-        ) -> Dict:
+        self,
+        map: np.ndarray,
+        map0: np.ndarray,
+        measure: str = "Hu",
+    ) -> Dict:
         """This method compute similarity matrices (cosine, Hu)
 
         Attributes:
@@ -620,17 +615,17 @@ class Chips(object):
                 cosine_sim.append(cosine_similarity(a, b)[0, 0])
         measures["cosine_sim"] = np.nanmean(cosine_sim)
         return measures
-    
+
     def run_filament_cleanup(
         self,
         params: dict = dict(
             clip_negative=0,
-            clip_211_log = [0.8, 2.7],
-            clip_193_log = [1.4, 3.0],
-            clip_171_log = [1.2, 3.9],
-            bmmix_value = 0.6357,
-            bmhot_value = 0.7,
-            bmcool_value = 1.5102,
+            clip_211_log=[0.8, 2.7],
+            clip_193_log=[1.4, 3.0],
+            clip_171_log=[1.2, 3.9],
+            bmmix_value=0.6357,
+            bmhot_value=0.7,
+            bmcool_value=1.5102,
         ),
         file_name: str = None,
         figsize: Tuple = (6, 6),
@@ -660,9 +655,9 @@ class Chips(object):
                 self.aia.resolution,
                 apply_psf=False,
                 local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
-            ), 
-            resolution=self.aia.resolution, 
-            params=params
+            ),
+            resolution=self.aia.resolution,
+            params=params,
         )
         self.cf.create_coronal_hole_candidates()
         self.cf.produce_summary_plots(
