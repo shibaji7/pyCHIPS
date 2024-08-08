@@ -158,10 +158,10 @@ class ImagePalette(object):
         if axis_off:
             ax.set_axis_off()
         if disk_axis and (not axis_off):
-            ax.set_xticks([0, 1024, 2048, 3072, 4095])
-            ax.set_xticklabels([r'-$2^{11}$', r'-$2^{10}$', '0', r'-$2^{10}$', r'-$2^{11}$'])
-            ax.set_yticks([0, 1024, 2048, 3072, 4095])
-            ax.set_yticklabels([r'-$2^{11}$', r'-$2^{10}$', '0', r'-$2^{10}$', r'-$2^{11}$'])
+            ax.set_xticks(np.array([0, 1024, 2048, 3072, 4096]))
+            ax.set_xticklabels([-2048, -1024, 0, 1024, 2048])
+            ax.set_yticks(np.array([0, 1024, 2048, 3072, 4096]))
+            ax.set_yticklabels([-2048, -1024, 0, 1024, 2048])
         if self.vert is not None and self.vert.shape[0]==2:
             ax.set_xlim(self.vert[0,0], self.vert[1,0])
             ax.set_ylim(self.vert[0,1], self.vert[1,1])
