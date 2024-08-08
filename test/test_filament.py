@@ -12,9 +12,11 @@ __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
 import datetime as dt
-from chips.fetch import RegisterAIA
-from chips.cleanup import CleanFl
+
 from chips.chips import Chips
+from chips.cleanup import CleanFl
+from chips.fetch import RegisterAIA
+
 
 #################################################
 # Method runs and stores all possible parameters
@@ -29,6 +31,7 @@ def set_AIA(date):
     )
     return aia
 
+
 if __name__ == "__main__":
     test_chips = True
     date = dt.datetime(2016, 10, 31, 12, 18)
@@ -42,12 +45,7 @@ if __name__ == "__main__":
             apply_psf=False,
             local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
         )
-        ch = Chips(
-            aia, 
-            medfilt_kernel=51, 
-            h_bins=500,
-            run_fl_cleanup=True
-        )
+        ch = Chips(aia, medfilt_kernel=51, h_bins=500, run_fl_cleanup=True)
         ch.run_CHIPS()
     else:
         # Test method on the Cleanup method
@@ -55,4 +53,3 @@ if __name__ == "__main__":
         cf = CleanFl(aia)
         cf.create_coronal_hole_candidates()
         cf.produce_summary_plots()
-    

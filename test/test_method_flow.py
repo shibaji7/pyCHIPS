@@ -12,15 +12,16 @@ __email__ = "shibaji7@vt.edu"
 __status__ = "Research"
 
 import datetime as dt
-import copy
 import os
 import pickle
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
 import numpy as np
+
 from chips.chips import Chips
 from chips.fetch import RegisterAIA
 from chips.plots import Annotation, ImagePalette
+
 
 #################################################
 # Method runs and stores all possible parameters
@@ -36,26 +37,25 @@ def run_CHIPS(date, param):
             local_file="sunpy/data/aia_lev1_{wavelength}a_{date_str}*.fits",
         )
         ch = Chips(
-            aia, 
-            medfilt_kernel=param["medfilt_kernel"], 
+            aia,
+            medfilt_kernel=param["medfilt_kernel"],
             h_bins=param["h_bins"],
             threshold_range=param["threshold_range"],
         )
         ch.run_CHIPS(clear_prev_runs=True)
         with open(fname, "wb") as f:
-            pickle.dump(
-                dict(aia=ch.aia, param=param), f
-            )
+            pickle.dump(dict(aia=ch.aia, param=param), f)
     else:
         with open(fname, "rb") as f:
             o = pickle.load(f)
         ch = Chips(
-            o["aia"], 
-            medfilt_kernel=param["medfilt_kernel"], 
+            o["aia"],
+            medfilt_kernel=param["medfilt_kernel"],
             h_bins=param["h_bins"],
             threshold_range=param["threshold_range"],
         )
     return ch
+
 
 def __create_localized_maps__(disk, regions, ip, id, axis_off=True):
     keys = list(regions.__dict__.keys())
@@ -68,10 +68,10 @@ def __create_localized_maps__(disk, regions, ip, id, axis_off=True):
     txt = r"$I_{th}=$%s" % key + "\n" + r"$\theta=%.3f$" % p
     map = regions.__dict__[key].map
     ip.plot_binary_localized_map(
-        map, disk.pixel_radius, disk.resolution, 
-        None, txt, axis_off=axis_off
+        map, disk.pixel_radius, disk.resolution, None, txt, axis_off=axis_off
     )
     return
+
 
 def draw_flow_example_plot(date, chips, param):
     ip = ImagePalette(
@@ -101,11 +101,16 @@ def draw_flow_example_plot(date, chips, param):
     )
     ax = ip.__axis__(axis_off=False)
     ax.tick_params(
-        axis='both', which='both', bottom=False, top=False, 
-        left=False, right=False, labelbottom=False, labelleft=False
+        axis="both",
+        which="both",
+        bottom=False,
+        top=False,
+        left=False,
+        right=False,
+        labelbottom=False,
+        labelleft=False,
     )
-    ax.step(d.histogram.bound, d.histogram.hbase, 
-            where="mid", ls="-", lw=1, color="b")
+    ax.step(d.histogram.bound, d.histogram.hbase, where="mid", ls="-", lw=1, color="b")
     if param["wavelength"] == 171:
         xlim, bounds = [0, 50], [7, 3, 10]
     if param["wavelength"] == 193:
@@ -114,7 +119,9 @@ def draw_flow_example_plot(date, chips, param):
         xlim, bounds = [0, 50], [7, 3, 10]
     ax.set_xlim(xlim)
     ax.axvline(d.histogram.bound[bounds[0]], color="r", ls="--", lw=0.8)
-    ax.axvspan(d.histogram.bound[bounds[1]], d.histogram.bound[bounds[2]], color="r", alpha=0.2)
+    ax.axvspan(
+        d.histogram.bound[bounds[1]], d.histogram.bound[bounds[2]], color="r", alpha=0.2
+    )
     __create_localized_maps__(d, d.solar_ch_regions, ip, 0)
     __create_localized_maps__(d, d.solar_ch_regions, ip, 2)
     __create_localized_maps__(d, d.solar_ch_regions, ip, 4, axis_off=False)
@@ -130,42 +137,71 @@ def draw_flow_example_plot(date, chips, param):
         ip.annotate(
             [
                 Annotation(
-                    t, 0.95, 0.95, "center", "center",
+                    t,
+                    0.95,
+                    0.95,
+                    "center",
+                    "center",
                     fontdict={"color": "w", "size": 12},
                 )
-            ], ticker=i
+            ],
+            ticker=i,
         )
     ip.annotate(
         [
             Annotation(
-                "d", 0.95, 0.95, "center", "center",
+                "d",
+                0.95,
+                0.95,
+                "center",
+                "center",
                 fontdict={"color": "k", "size": 12},
             )
-        ], ticker=3
+        ],
+        ticker=3,
     )
     ip.annotate(
         [
             Annotation(
-                date.strftime("%Y-%m-%d %H:%M"), -0.1, 0.95, "left", "top",
-                rotation=90, fontdict={"color": "k", "size": 12},
+                date.strftime("%Y-%m-%d %H:%M"),
+                -0.1,
+                0.95,
+                "left",
+                "top",
+                rotation=90,
+                fontdict={"color": "k", "size": 12},
             ),
             Annotation(
-                r"$\lambda=$%d$\AA$"%param["wavelength"], 0.05, 1.05, "left", "center",
+                r"$\lambda=$%d$\AA$" % param["wavelength"],
+                0.05,
+                1.05,
+                "left",
+                "center",
                 fontdict={"color": "k", "size": 12},
-            )
-        ], ticker=0
+            ),
+        ],
+        ticker=0,
     )
     ip.annotate(
         [
             Annotation(
-                r"$h_{bins}=$%d"%param["h_bins"], 0.05, 1.05, "left", "center",
+                r"$h_{bins}=$%d" % param["h_bins"],
+                0.05,
+                1.05,
+                "left",
+                "center",
                 fontdict={"color": "k", "size": 12},
             ),
             Annotation(
-                r"$\kappa=$%d"%param["medfilt_kernel"], 0.95, 1.05, "right", "center",
+                r"$\kappa=$%d" % param["medfilt_kernel"],
+                0.95,
+                1.05,
+                "right",
+                "center",
                 fontdict={"color": "k", "size": 12},
-            )
-        ], ticker=1
+            ),
+        ],
+        ticker=1,
     )
     ax = plt.gcf().axes[6]
     ax.set_xticks(np.arange(0, 4097, 1024))
@@ -178,18 +214,15 @@ def draw_flow_example_plot(date, chips, param):
     ip.close()
     return
 
+
 if __name__ == "__main__":
     date = dt.datetime(2015, 8, 20)
     # Params for 193 Dataset
-    param = dict(
-        medfilt_kernel=51, h_bins=500,
-        wavelength=193, threshold_range=[0, 20]
-    )
+    param = dict(medfilt_kernel=51, h_bins=500, wavelength=193, threshold_range=[0, 20])
     # Params for 211 Dataset
     param = dict(
-        medfilt_kernel=51, h_bins=1000,
-        wavelength=211, threshold_range=[-3, 11]
+        medfilt_kernel=51, h_bins=1000, wavelength=211, threshold_range=[-3, 11]
     )
-    
+
     chips = run_CHIPS(date, param)
     draw_flow_example_plot(date, chips, param)

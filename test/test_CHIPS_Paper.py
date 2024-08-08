@@ -333,7 +333,7 @@ class TestCHIPSPaper(unittest.TestCase):
             ncols=3,
             sharex="none",
             sharey="none",
-            vert=np.array([[1000,1000],[3000,3000]])
+            vert=np.array([[1000, 1000], [3000, 3000]]),
         )
         disk193 = chips193.aia.datasets[193][4096]
         ip.draw_grayscale_disk(
